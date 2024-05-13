@@ -11,18 +11,18 @@ import {ECDSA} from '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 contract QWUserWallet {
     using ECDSA for bytes32;
 
-    /// Struct to manage transfer details
+    /// Struct to manage transfer details.
     struct Transfer {
         address dapp;
         uint256 amount;
         address token;
     }
 
-    /// Mapping to track user deposits
-    mapping(address => mapping(address => uint256)) public balances;
+    /// Mapping to track user deposits.
+    mapping(address => uint256) public balances;
 
     /// Events
-    event Deposit(address indexed user, address indexed token, uint256 amount);
+    event DepositExecuted(address indexed user, address indexed token, uint256 amount);
     event TransferExecuted(address indexed user, address indexed dapp, address indexed token, uint256 amount);
 
     /**
@@ -33,7 +33,7 @@ contract QWUserWallet {
     function deposit(address token, uint256 amount) external {
         require(IERC20(token).transferFrom(msg.sender, address(this), amount), "QWUserWallet: Transfer failed");
         balances[msg.sender][token] += amount;
-        emit Deposit(msg.sender, token, amount);
+        emit DepositExecuted(msg.sender, token, amount);
     }
 
     /**
