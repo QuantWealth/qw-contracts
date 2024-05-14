@@ -7,20 +7,8 @@ pragma solidity 0.8.23;
  * @notice TODO: Add a description
  */
 interface IQWManager {
-  /*///////////////////////////////////////////////////////////////
-                            EVENTS
-  //////////////////////////////////////////////////////////////*/
 
-  /*///////////////////////////////////////////////////////////////
-                            ERRORS
-  //////////////////////////////////////////////////////////////*/
-  /*///////////////////////////////////////////////////////////////
-                            VARIABLES
-  //////////////////////////////////////////////////////////////*/
-
-  /*///////////////////////////////////////////////////////////////
-                            FUNCTIONS
-  //////////////////////////////////////////////////////////////*/
+  /// functions
   /**
    * @notice ...
    * @dev Only callable by the wing
@@ -33,7 +21,7 @@ interface IQWManager {
     address[] memory _targetQwi,
     bytes[] memory _callData,
     address[] memory _tokenAddress,
-    uint256[] _amount
+    uint256[] memory _amount
   ) external;
 
   /**
@@ -47,8 +35,8 @@ interface IQWManager {
   /**
    * @notice ...
    * @dev Only callable by the wing
-   * @param _targetQwi ...
-   * @param _callData ...
+   * @param _user ...
+   * @param _amount ...
    */
-  function withdraw(address user, uint256 amount) external;
+  function withdraw(address _user, uint256 _amount) external;
 }
