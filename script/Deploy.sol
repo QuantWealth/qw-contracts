@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {Greeter} from 'contracts/Greeter.sol';
+import {QWManager} from 'contracts/QWManager.sol';
 import {Script} from 'forge-std/Script.sol';
 import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 
@@ -27,7 +27,7 @@ contract Deploy is Script {
     DeploymentParams memory _params = _deploymentParams[block.chainid];
 
     vm.startBroadcast();
-    new Greeter(_params.greeting, _params.token);
+    new QWManager();
     vm.stopBroadcast();
   }
 }
