@@ -8,7 +8,7 @@ pragma solidity 0.8.23;
  */
 interface IQWChild {
   /// functions
-  function withdraw() external view returns (address);
+  function qwManager() external view returns (address);
 
   /**
    * @notice ...
@@ -17,12 +17,12 @@ interface IQWChild {
    * @param _tokenAddress ...
    * @param _amount ...
    */
-  function create(bytes memory _callData, address _tokenAddress, uint256 _amount) external;
+  function create(bytes memory _callData, address _tokenAddress, uint256 _amount) external returns(bool success);
 
   /**
    * @notice ...
    * @dev ...
    * @param _callData ...
    */
-  function close(bytes memory _callData) external;
+  function close(bytes memory _callData) external returns(bool success);
 }
