@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {Test} from 'forge-std/Test.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
 
-contract QWRegistryTest is Test {
+contract UnitQWRegistryTest is Test {
   MockQWRegistry mockQWRegistry;
   address constant validQWManager = address(0x123);
   address constant validChildContract = address(0x456);

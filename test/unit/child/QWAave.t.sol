@@ -5,7 +5,7 @@ import {IERC20, IPool, IQWChild, QWAave} from 'contracts/child/QWAave.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockQWAave} from 'test/smock/child/MockQWAave.sol';
 
-contract QWAaveTest is Test {
+contract UnitQWAaveTest is Test {
   MockQWAave public mockQWAave;
   address public qwManager;
   address public pool;

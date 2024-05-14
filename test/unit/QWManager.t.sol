@@ -7,7 +7,7 @@ import {MockQWManager} from 'test/smock/MockQWManager.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
 import {MockQWAave} from 'test/smock/child/MockQWAave.sol';
 
-contract QWManagerTest is Test {
+contract UnitQWManagerTest is Test {
   MockQWManager public mockQWManager;
   // MockQWRegistry public mockQWRegistry;
   MockQWAave public mockQWAave;
