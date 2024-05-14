@@ -3,15 +3,13 @@ pragma solidity 0.8.23;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IQWManager} from 'interfaces/IQWManager.sol';
-import {QWWing} from "./QWWing.sol";
-import {QWGuardian} from "./QWGuardian.sol";
 
 /**
  * @title Quant Wealth Manager Contract
  * @notice This contract manages the execution, closing, and withdrawal of various strategies for Quant Wealth.
  * It inherits access control functionality from QWWing and QWGuardian for role-based access.
  */
-contract QWManager is IQWManager, QWWing, QWGuardian {
+contract QWManager is IQWManager {
     /// Errors
     error QWManager__onlyAdmin_notAdmin();
 
@@ -23,7 +21,7 @@ contract QWManager is IQWManager, QWWing, QWGuardian {
      * @dev Constructor that sets up the default admin role and initializes the QWWing and QWGuardian contracts with the operator address.
      * @param operator The address that will be granted the WING_OPERATOR_ROLE and GUARDIAN_OPERATOR_ROLE.
      */
-    constructor(address operator) QWWing(operator) QWGuardian(operator) {
+    constructor() {
         // Add global admin role.
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -38,26 +36,6 @@ contract QWManager is IQWManager, QWWing, QWGuardian {
     }
 
     /// External Functions
-    /**
-     * @notice Initialize the Wing Operator role.
-     * @dev This function can only be called by an address with the DEFAULT_ADMIN_ROLE.
-     * @param operator The address to be granted the WING_OPERATOR_ROLE.
-     */
-    function initializeWingOperator(address operator) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "QWManager: Must have admin role to initialize");
-        _grantRole(WING_OPERATOR_ROLE, operator);
-    }
-
-    /**
-     * @notice Initialize the Guardian Operator role.
-     * @dev This function can only be called by an address with the DEFAULT_ADMIN_ROLE.
-     * @param operator The address to be granted the GUARDIAN_OPERATOR_ROLE.
-     */
-    function initializeGuardianOperator(address operator) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "QWManager: Must have admin role to initialize");
-        _grantRole(GUARDIAN_OPERATOR_ROLE, operator);
-    }
-
     /**
      * @notice Execute a series of transactions.
      * @dev This function can only be called by an address with the WING_OPERATOR_ROLE.
