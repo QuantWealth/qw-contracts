@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity 0.8.23;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import {IQWManager} from 'interfaces/IQWManager.sol';
+import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
+import {QWRegistry} from './QWRegistry.sol';
 
 /**
  * @title Quant Wealth Manager Contract
@@ -14,25 +16,16 @@ contract QWManager is IQWManager {
     error QWManager__onlyAdmin_notAdmin();
 
     /// Storage
+    address immutable public registry;
 
 
     /// Constructor
     /**
      * @dev Constructor that sets up the default admin role and initializes the QWWing and QWGuardian contracts with the operator address.
-     * @param operator The address that will be granted the WING_OPERATOR_ROLE and GUARDIAN_OPERATOR_ROLE.
      */
     constructor() {
-        // Add global admin role.
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-    }
-
-    /// Modifiers
-    /**
-     * @dev Modifier to check if the caller has the DEFAULT_ADMIN_ROLE.
-     */
-    modifier onlyAdmin() {
-        if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) revert QWManager__onlyAdmin_notAdmin();
-        _;
+        QWRegistry _registry = new QWRegistry(address(this));
+        registry = address(_registry);
     }
 
     /// External Functions
@@ -50,7 +43,7 @@ contract QWManager is IQWManager {
         bytes[] memory _callData,
         address[] memory _tokenAddress,
         uint256[] memory _amount
-    ) external override onlyWing {
+    ) external override {
         require(_targetQwi.length == _callData.length, "QWManager: Mismatched input lengths");
         require(_tokenAddress.length == _amount.length, "QWManager: Mismatched token inputs");
 
@@ -73,7 +66,7 @@ contract QWManager is IQWManager {
     function close(
         address[] memory _targetQwi,
         bytes[] memory _callData
-    ) external override onlyGuardian {
+    ) external override  {
         require(_targetQwi.length == _callData.length, "QWManager: Mismatched input lengths");
 
         for (uint256 i = 0; i < _targetQwi.length; i++) {
@@ -92,7 +85,7 @@ contract QWManager is IQWManager {
     function withdraw(
         address user,
         uint256 amount
-    ) external override onlyGuardian {
+    ) external override {
         payable(user).transfer(amount);
     }
 }
