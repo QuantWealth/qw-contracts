@@ -8,5 +8,9 @@ pragma solidity 0.8.23;
  */
 interface IQWRegistry {
   /// functions
+  function whitelist(address _child) external view returns (bool);
+
+  function qwManager() external view returns (address);
+
   function registerChild(address _child) external;
 }

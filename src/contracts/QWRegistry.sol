@@ -11,7 +11,7 @@ import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
  */
 contract QWRegistry is IQWRegistry {
   /// Variables
-  address public immutable withdraw;
+  address public immutable qwManager;
 
   mapping(address => bool) public whitelist;
 
@@ -20,7 +20,7 @@ contract QWRegistry is IQWRegistry {
    * @dev ...
    */
   constructor(address _qwManager) {
-    withdraw = _qwManager;
+    qwManager = _qwManager;
   }
 
   /**
@@ -29,7 +29,7 @@ contract QWRegistry is IQWRegistry {
    * @param _child ...
    */
   function registerChild(address _child) external {
-    require(IQWChild(_child).withdraw.address == withdraw, 'withdraw should be the same as the parent contract');
+    require(IQWChild(_child).qwManager.address == qwManager, 'qwManager should be the same as the parent contract');
     whitelist[_child] = true;
   }
 }
