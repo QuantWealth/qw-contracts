@@ -32,6 +32,10 @@
     "test/**/*.sol": "yarn lint:sol-tests",
     "package.json": "sort-package-json"
   },
+  "dependencies": {
+    "@aave/core-v3": "^1.19.3",
+    "@openzeppelin/contracts": "^5.0.2"
+  },
   "devDependencies": {
     "@commitlint/cli": "19.3.0",
     "@commitlint/config-conventional": "19.2.2",
@@ -42,9 +46,5 @@
     "lint-staged": ">=10",
     "solhint-community": "4.0.0",
     "sort-package-json": "2.10.0"
-  },
-  "dependencies": {
-    "@aave/core-v3": "^1.19.3",
-    "@openzeppelin/contracts": "^5.0.2"
   }
 }
