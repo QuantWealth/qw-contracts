@@ -2,9 +2,10 @@
 pragma solidity 0.8.23;
 
 import {QWRegistry} from './QWRegistry.sol';
-import {IERC20} from 'forge-std/interfaces/IERC20.sol';
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IQWManager} from 'interfaces/IQWManager.sol';
 import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
+import {IQWChild} from 'interfaces/IQWChild.sol';
 
 /**
  * @title Quant Wealth Manager Contract
@@ -29,7 +30,7 @@ contract QWManager is IQWManager {
 
   /// External Functions
   /**
-   * @notice Execute a series of transactions.
+   * @notice Execute a series of investments.
    * @dev This function can only be called by an address with the WING_OPERATOR_ROLE.
    * Transfers specified amounts of tokens and calls target contracts with provided calldata.
    * @param _targetQwChild List of contract addresses to interact with.
@@ -46,14 +47,19 @@ contract QWManager is IQWManager {
     require(_targetQwChild.length == _callData.length, 'QWManager: Mismatched input lengths');
 
     for (uint256 i = 0; i < _targetQwChild.length; i++) {
-      IERC20(_tokenAddress).transferFrom(msg.sender, address(this), _amount);
-      (bool success,) = _targetQwChild[i].call(_callData[i]);
-      require(success, 'QWManager: Call failed');
+        require(IQWRegistry(registry).whitelist(_targetQwChild[i]), 'QWManager: Contract not whitelisted');
+
+        IERC20 token = IERC20(_tokenAddress);
+        token.approve(_targetQwChild[i], _amount);
+        token.transferFrom(address(this), address(_targetQwChild[i]), _amount);
+
+        (bool success) = IQWChild(_targetQwChild[i]).create(_callData[i], _tokenAddress, _amount);
+        require(success, 'QWManager: Call failed');
     }
   }
 
   /**
-   * @notice Close a series of transactions.
+   * @notice Close a series of investments.
    * @dev This function can only be called by an address with the GUARDIAN_OPERATOR_ROLE.
    * Calls target contracts with provided calldata to close positions.
    * @param _targetQwChild List of contract addresses to interact with.
@@ -63,7 +69,7 @@ contract QWManager is IQWManager {
     require(_targetQwChild.length == _callData.length, 'QWManager: Mismatched input lengths');
 
     for (uint256 i = 0; i < _targetQwChild.length; i++) {
-      (bool success,) = _targetQwChild[i].call(_callData[i]);
+      (bool success) = IQWChild(_targetQwChild[i]).close(_callData[i]);
       require(success, 'QWManager: Call failed');
     }
   }
