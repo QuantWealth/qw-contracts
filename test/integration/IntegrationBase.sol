@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {QWManager, IQWManager} from 'contracts/QWManager.sol';
+import {IQWManager, QWManager} from 'contracts/QWManager.sol';
 import {Test} from 'forge-std/Test.sol';
 import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 

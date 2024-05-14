@@ -7,9 +7,6 @@ pragma solidity 0.8.23;
  * @notice ...
  */
 interface IQWRegistry {
-
-    /// functions
-    function registerChild(
-        address _child
-    ) external;
+  /// functions
+  function registerChild(address _child) external;
 }

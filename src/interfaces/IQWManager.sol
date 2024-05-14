@@ -7,7 +7,6 @@ pragma solidity 0.8.23;
  * @notice TODO: Add a description
  */
 interface IQWManager {
-
   /// functions
   /**
    * @notice ...
