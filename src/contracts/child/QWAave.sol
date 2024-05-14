@@ -6,52 +6,66 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IQWChild} from 'interfaces/IQWChild.sol';
 
 /**
- * @title Interface for Quant Wealth Integration Child Contract
- * @author Quant Wealth
- * @notice ...
+ * @title Aave Integration for Quant Wealth
+ * @notice This contract integrates with Aave protocol for Quant Wealth management.
  */
 contract QWAave is IQWChild {
-  /// Variables
-  address public immutable qwManager;
+  // Variables
+  address public immutable QW_MANAGER;
+  address public immutable POOL;
 
-  address public immutable pool;
+  // Custom errors
+  error InvalidCallData(); // Error for invalid call data
 
+  /**
+   * @dev Constructor to initialize the contract with required addresses.
+   * @param _qwManager The address of the Quant Wealth Manager contract.
+   * @param _pool The address of the Aave pool contract.
+   */
   constructor(address _qwManager, address _pool) {
-    qwManager = _qwManager;
-    pool = _pool;
+    QW_MANAGER = _qwManager;
+    POOL = _pool;
   }
 
-  /// functions
+  // Functions
   /**
-   * @notice ...
-   * @dev ...
-   * @param _callData ...
-   * @param _tokenAddress ...
-   * @param _amount ...
+   * @notice Executes a transaction on Aave pool to deposit tokens.
+   * @dev This function is called by the parent contract to deposit tokens into the Aave pool.
+   * @param _callData Encoded function call data (not used in this implementation).
+   * @param _tokenAddress Address of the token to be deposited.
+   * @param _amount Amount of tokens to be deposited.
+   * @return success boolean indicating the success of the transaction.
    */
-  function create(bytes memory _callData, address _tokenAddress, uint256 _amount) external returns (bool success) {
-    require(_callData.length > 0, 'QWAave: invalid call data');
+  function create(
+    bytes memory _callData,
+    address _tokenAddress,
+    uint256 _amount
+  ) external override returns (bool success) {
+    if (_callData.length != 0) {
+      revert InvalidCallData();
+    }
 
     IERC20 token = IERC20(_tokenAddress);
-    token.approve(pool, _amount);
+    token.approve(POOL, _amount);
 
-    /// function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode)
-    IPool(pool).supply(_tokenAddress, _amount, qwManager, 0);
+    IPool(POOL).supply(_tokenAddress, _amount, QW_MANAGER, 0);
     return true;
   }
 
   /**
-   * @notice ...
-   * @dev ...
-   * @param _callData ...
+   * @notice Executes a transaction on Aave pool to withdraw tokens.
+   * @dev This function is called by the parent contract to withdraw tokens from the Aave pool.
+   * @param _callData Encoded function call data containing the asset and amount to be withdrawn.
+   * @return success boolean indicating the success of the transaction.
    */
-  function close(bytes memory _callData) external returns (bool success) {
-    require(_callData.length == 0, 'QWAave: invalid call data');
+  function close(bytes memory _callData) external override returns (bool success) {
+    if (_callData.length == 0) {
+      revert InvalidCallData();
+    }
 
-    (address _asset, uint256 _amount) = abi.decode(_callData, (address, uint256));
+    (address asset, uint256 amount) = abi.decode(_callData, (address, uint256));
 
-    /// function withdraw(address asset, uint256 amount, address to)
-    IPool(pool).withdraw(_asset, _amount, qwManager);
+    IPool(POOL).withdraw(asset, amount, QW_MANAGER);
     return true;
   }
 }
