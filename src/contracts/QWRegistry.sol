@@ -38,21 +38,14 @@ contract QWRegistry is IQWRegistry {
    * @param _child The address of the child contract to register.
    */
   function registerChild(address _child) external {
-    _validateInput(_child);
+    if (_child == address(0)) {
+      revert InvalidAddress();
+    }
     IQWChild childContract = IQWChild(_child);
     if (childContract.QW_MANAGER() != QW_MANAGER) {
       revert ParentMismatch();
     }
     whitelist[_child] = true;
     emit ChildRegistered(_child); // Emit an event when a child contract is registered
-  }
-
-  // Internal Functions
-
-  // Error Handling: Ensure that input parameters are valid
-  function _validateInput(address _child) private pure {
-    if (_child == address(0)) {
-      revert InvalidAddress();
-    }
   }
 }
