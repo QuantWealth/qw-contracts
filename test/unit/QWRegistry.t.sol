@@ -3,8 +3,9 @@ pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
+import {SmockHelper} from 'test/smock/SmockHelper.sol';
 
-contract UnitQWRegistryTest is Test {
+contract UnitQWRegistryTest is Test, SmockHelper {
   MockQWRegistry mockQWRegistry;
   address constant validQWManager = address(0x123);
   address constant validChildContract = address(0x456);
@@ -13,16 +14,18 @@ contract UnitQWRegistryTest is Test {
   MockQWRegistry mockRegistry;
 
   function beforeEach() public {
-    mockQWRegistry = new MockQWRegistry(validQWManager);
+    mockQWRegistry =
+      MockQWRegistry(deployMock('QWRegistry', type(MockQWRegistry).creationCode, abi.encode(validQWManager)));
   }
 
   function testRegisterChild() public {
-    // mockQWRegistry.mock_call_registerChild(validChildContract);
+    mockQWRegistry.mock_call_registerChild(validChildContract);
+    // assertTrue(true, 'Child contract should be whitelisted after registration');
     // mockQWRegistry.registerChild(validChildContract);
-    // assertTrue(mockQWRegistry.whitelist(validChildContract), "Child contract should be whitelisted after registration");
+    // assertTrue(mockQWRegistry.whitelist(validChildContract), 'Child contract should be whitelisted after registration');
   }
 
-  // function testRegisterInvalidChild() public {
+    // function testRegisterInvalidChild() public {
   //     mockRegistry.set_whitelist(invalidChildContract, false);
   //     try mockQWRegistry.registerChild(invalidChildContract) {
   //         fail("Registering an invalid child contract should revert");
