@@ -41,7 +41,7 @@ contract QWManager is IQWManager {
     bytes[] memory _callData,
     address _tokenAddress,
     uint256 _amount
-  ) external override {
+  ) external {
     if (_targetQwChild.length != _callData.length) {
       revert InvalidInputLength();
     }
@@ -68,7 +68,7 @@ contract QWManager is IQWManager {
    * @param _targetQwChild List of contract addresses to interact with.
    * @param _callData Encoded function calls to be executed on the target contracts.
    */
-  function close(address[] memory _targetQwChild, bytes[] memory _callData) external override {
+  function close(address[] memory _targetQwChild, bytes[] memory _callData) external {
     if (_targetQwChild.length != _callData.length) {
       revert InvalidInputLength();
     }
@@ -87,7 +87,7 @@ contract QWManager is IQWManager {
    * @param user The address of the user to receive the funds.
    * @param amount The amount of funds to transfer to the user.
    */
-  function withdraw(address user, uint256 amount) external override {
+  function withdraw(address user, uint256 amount) external {
     payable(user).transfer(amount);
   }
 }
