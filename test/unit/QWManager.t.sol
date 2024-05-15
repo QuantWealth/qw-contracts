@@ -5,9 +5,11 @@ import {IERC20, IQWChild, IQWManager, QWManager} from 'contracts/QWManager.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockQWManager} from 'test/smock/MockQWManager.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
+
+import {SmockHelper} from 'test/smock/SmockHelper.sol';
 import {MockQWAave} from 'test/smock/child/MockQWAave.sol';
 
-contract UnitQWManagerTest is Test {
+contract UnitQWManagerTest is Test, SmockHelper {
   MockQWManager public mockQWManager;
   // MockQWRegistry public mockQWRegistry;
   MockQWAave public mockQWAave;
@@ -16,7 +18,7 @@ contract UnitQWManagerTest is Test {
   uint256 public amount;
 
   function setUp() public {
-    mockQWManager = new MockQWManager();
+    mockQWManager = MockQWManager(deployMock('QWManager', type(MockQWManager).creationCode, abi.encode()));
     // mockQWRegistry = new MockQWRegistry(mockQWManager.REGISTRY());
     mockQWAave = new MockQWAave(address(mockQWManager), address(0x456));
     targetQWChild = [address(mockQWAave)];
