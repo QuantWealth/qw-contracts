@@ -16,6 +16,6 @@ contract MockQWRegistry is QWRegistry, Test {
   constructor(address _qwManager) QWRegistry(_qwManager) {}
 
   function mock_call_registerChild(address _child) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('registerChild(address)', _child), abi.encode());
+    // vm.mockCall(address(this), abi.encodeWithSignature('registerChild(address)', _child), abi.encode());
   }
 }
