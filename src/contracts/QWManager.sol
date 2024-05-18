@@ -73,10 +73,7 @@ contract QWManager is IQWManager {
     }
 
     for (uint256 i = 0; i < _targetQwChild.length; i++) {
-      (, address lpAsset, uint256 amount) = abi.decode(
-          _callData[i],
-          (address, address, uint256)
-      );
+      (, address lpAsset, uint256 amount) = abi.decode(_callData[i], (address, address, uint256));
       IERC20 token = IERC20(lpAsset);
       token.approve(address(_targetQwChild[i]), amount);
 
