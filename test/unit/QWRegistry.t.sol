@@ -15,7 +15,7 @@ contract UnitQWRegistryTest is Test, SmockHelper {
     MockQWManager public mockQWManager;
     MockQWAave public mockQWAave;
 
-    function beforeEach() public {
+    function setUp() public {
         mockQWManager = MockQWManager(
             deployMock(
                 "QWManager",
@@ -42,14 +42,12 @@ contract UnitQWRegistryTest is Test, SmockHelper {
     }
 
     function testRegisterChild() public {
-        vm.skip(true);
-
         address validChildContract = address(mockQWAave);
         // Record logs to capture emitted events
         vm.recordLogs();
 
         // Call registerChild function on the mock contract
-        // mockQWRegistry.registerChild(validChildContract);
+        mockQWRegistry.registerChild(validChildContract);
 
         // Assert that the child contract is whitelisted after registration
         assertTrue(
