@@ -64,7 +64,7 @@ contract AaveIntegration is IntegrationBase {
         bytes[] memory callDataArr = new bytes[](1);
         callDataArr[0] = callData;
         
-        // bug: qwAave contract need to have aDai tokens and approve them to aave pool contract to withdraw
+        // close the position
         _qwManager.close(targetQWChild, callDataArr);
 
         uint256 aDaiBalanceAfter = _aDai.balanceOf(address(_qwManager));
