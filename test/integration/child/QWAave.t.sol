@@ -51,8 +51,11 @@ contract AaveIntegration is IntegrationBase {
         test_Create_Aave();
 
         vm.startPrank(_daiWhale);
-        uint256 amount = 1_000_000 ether;
-        bytes memory callData = abi.encode(_dai, amount);
+        uint256 amount = _aDai.balanceOf(address(_qwManager));
+        bytes memory callData = abi.encode(address(_dai), address(_aDai), amount);
+
+        uint256 aDaiBalanceBefore = _aDai.balanceOf(address(_qwManager));
+        uint256 daiBalanceBefore = _dai.balanceOf(address(_qwManager));
         
         // Create dynamic arrays with one element each
         address[] memory targetQWChild = new address[](1);
@@ -63,6 +66,13 @@ contract AaveIntegration is IntegrationBase {
         
         // bug: qwAave contract need to have aDai tokens and approve them to aave pool contract to withdraw
         _qwManager.close(targetQWChild, callDataArr);
+
+        uint256 aDaiBalanceAfter = _aDai.balanceOf(address(_qwManager));
+        uint256 daiBalanceAfter = _dai.balanceOf(address(_qwManager));
+
+        assertGe(daiBalanceAfter - daiBalanceBefore, amount);
+        assertEq(aDaiBalanceBefore - aDaiBalanceAfter, amount);
+        assertEq(aDaiBalanceAfter, 0);
         vm.stopPrank();
     }
 }

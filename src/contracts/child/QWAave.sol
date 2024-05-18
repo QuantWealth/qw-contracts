@@ -46,6 +46,7 @@ contract QWAave is IQWChild {
         }
 
         IERC20 token = IERC20(_tokenAddress);
+        token.transferFrom(QW_MANAGER, address(this), _amount);
         token.approve(POOL, _amount);
 
         IPool(POOL).supply(_tokenAddress, _amount, QW_MANAGER, 0);
@@ -65,10 +66,14 @@ contract QWAave is IQWChild {
             revert InvalidCallData();
         }
 
-        (address asset, uint256 amount) = abi.decode(
+        (address asset, address lpAsset, uint256 amount) = abi.decode(
             _callData,
-            (address, uint256)
+            (address, address, uint256)
         );
+
+        IERC20 token = IERC20(lpAsset);
+        token.transferFrom(QW_MANAGER, address(this), amount);
+        token.approve(POOL, amount);
 
         IPool(POOL).withdraw(asset, amount, QW_MANAGER);
         return true;

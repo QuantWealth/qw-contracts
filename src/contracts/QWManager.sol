@@ -52,8 +52,7 @@ contract QWManager is IQWManager {
       }
 
       IERC20 token = IERC20(_tokenAddress);
-      token.approve(_targetQwChild[i], _amount);
-      token.transferFrom(address(this), address(_targetQwChild[i]), _amount);
+      token.approve(address(_targetQwChild[i]), _amount);
 
       (bool success) = IQWChild(_targetQwChild[i]).create(_callData[i], _tokenAddress, _amount);
       if (!success) {
@@ -74,6 +73,13 @@ contract QWManager is IQWManager {
     }
 
     for (uint256 i = 0; i < _targetQwChild.length; i++) {
+      (, address lpAsset, uint256 amount) = abi.decode(
+          _callData[i],
+          (address, address, uint256)
+      );
+      IERC20 token = IERC20(lpAsset);
+      token.approve(address(_targetQwChild[i]), amount);
+
       (bool success) = IQWChild(_targetQwChild[i]).close(_callData[i]);
       if (!success) {
         revert CallFailed();
