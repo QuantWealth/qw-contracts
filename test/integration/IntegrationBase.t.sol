@@ -11,8 +11,8 @@ contract IntegrationBase is Test {
 
   address internal _user = makeAddr('user');
   address internal _owner = makeAddr('owner');
-  address internal _daiWhale = 0x837c20D568Dfcd35E74E5CC0B8030f9Cebe10A28;
-  IERC20 internal _dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
+  address internal _usdcWhale = 0x47ac0Fb4F2D84898e4D9E7b4DaB3C24507a6D503;
+  IERC20 internal _usdc = IERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
   IQWManager internal _qwManager;
   IQWRegistry internal _qwRegistry;
 
