@@ -3,10 +3,11 @@ pragma solidity 0.8.23;
 
 import {IntegrationBase} from '../IntegrationBase.t.sol';
 import {IERC20, IPool, IQWChild, QWAave} from 'contracts/child/QWAave.sol';
+import {Test, console2} from 'forge-std/Test.sol';
 
 contract AaveIntegration is IntegrationBase {
   IPool internal _aavePool = IPool(0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2);
-  IERC20 internal _aDai = IERC20(0x018008bfb33d285247A21d44E50697654f754e63);
+  IERC20 internal _aUsdc = IERC20(0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c);
   IQWChild internal _qwAave;
 
   function setUp() public virtual override {
@@ -16,17 +17,18 @@ contract AaveIntegration is IntegrationBase {
     _qwRegistry.registerChild(address(_qwAave));
   }
 
-  function test_Create_Aave() public {
-    vm.startPrank(_daiWhale);
-    uint256 amount = 1_000_000 ether;
+  function test_CreateAave() public {
+    vm.startPrank(_usdcWhale);
+    uint256 amount = 1e12; // 1 million usdc
     bytes memory callData = '';
-    address tokenAddress = address(_dai);
+    address tokenAddress = address(_usdc);
 
-    // transfer dai from user to qwManager contract
-    _dai.transfer(address(_qwManager), amount);
+    console2.log(_usdc.balanceOf(_usdcWhale));
 
-    uint256 aDaiBalanceBefore = _aDai.balanceOf(address(_qwManager));
-    uint256 daiBalanceBefore = _dai.balanceOf(address(_qwManager));
+    // transfer usdc from user to qwManager contract
+    _usdc.transfer(address(_qwManager), amount);
+    uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_qwManager));
+    uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
     // Create dynamic arrays with one element each
     address[] memory targetQWChild = new address[](1);
@@ -37,25 +39,25 @@ contract AaveIntegration is IntegrationBase {
 
     // execute the investment
     _qwManager.execute(targetQWChild, callDataArr, tokenAddress, amount);
-    uint256 aDaiBalanceAfter = _aDai.balanceOf(address(_qwManager));
-    uint256 daiBalanceAfter = _dai.balanceOf(address(_qwManager));
+    uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
+    uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
-    assertGe(aDaiBalanceAfter - aDaiBalanceBefore, amount);
-    assertEq(daiBalanceBefore - daiBalanceAfter, amount);
-    assertEq(daiBalanceAfter, 0);
+    assertGe(aUsdcBalanceAfter - aUsdcBalanceBefore, amount);
+    assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
+    assertEq(usdcBalanceAfter, 0);
     vm.stopPrank();
   }
 
-  function test_Close_Aave() public {
+  function test_CloseAave() public {
     // create investment in aave
-    test_Create_Aave();
+    test_CreateAave();
 
-    vm.startPrank(_daiWhale);
-    uint256 amount = _aDai.balanceOf(address(_qwManager));
-    bytes memory callData = abi.encode(address(_dai), address(_aDai), amount);
+    vm.startPrank(_usdcWhale);
+    uint256 amount = _aUsdc.balanceOf(address(_qwManager));
+    bytes memory callData = abi.encode(address(_usdc), address(_aUsdc), amount);
 
-    uint256 aDaiBalanceBefore = _aDai.balanceOf(address(_qwManager));
-    uint256 daiBalanceBefore = _dai.balanceOf(address(_qwManager));
+    uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_qwManager));
+    uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
     // Create dynamic arrays with one element each
     address[] memory targetQWChild = new address[](1);
@@ -67,12 +69,12 @@ contract AaveIntegration is IntegrationBase {
     // close the position
     _qwManager.close(targetQWChild, callDataArr);
 
-    uint256 aDaiBalanceAfter = _aDai.balanceOf(address(_qwManager));
-    uint256 daiBalanceAfter = _dai.balanceOf(address(_qwManager));
+    uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
+    uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
-    assertGe(daiBalanceAfter - daiBalanceBefore, amount);
-    assertEq(aDaiBalanceBefore - aDaiBalanceAfter, amount);
-    assertEq(aDaiBalanceAfter, 0);
+    assertGe(usdcBalanceAfter - usdcBalanceBefore, amount);
+    assertEq(aUsdcBalanceBefore - aUsdcBalanceAfter, amount);
+    assertEq(aUsdcBalanceAfter, 0);
     vm.stopPrank();
   }
 }
