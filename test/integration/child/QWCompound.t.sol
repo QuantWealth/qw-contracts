@@ -14,11 +14,11 @@ contract CompoundIntegration is IntegrationBase {
     IntegrationBase.setUp();
 
     _qwCompound = new QWCompound(address(_qwManager), address(_compoundV3Comet));
+    vm.prank(_owner);
     _qwRegistry.registerChild(address(_qwCompound));
   }
 
   function test_CreateCompound() public {
-    vm.startPrank(_usdcWhale);
     uint256 amount = 1e12; // 1 million usdc
     bytes memory callData = '';
     address tokenAddress = address(_usdc);
@@ -26,6 +26,7 @@ contract CompoundIntegration is IntegrationBase {
     uint256 supplyFee = 1; // supply fees taken by compound
 
     // transfer dai from user to qwManager contract
+    vm.prank(_usdcWhale);
     _usdc.transfer(address(_qwManager), amount);
 
     uint256 cUsdcV3BalanceBefore = _cUsdcV3.balanceOf(address(_qwManager));
@@ -39,6 +40,7 @@ contract CompoundIntegration is IntegrationBase {
     callDataArr[0] = callData;
 
     // execute the investment
+    vm.prank(_owner);
     _qwManager.execute(targetQWChild, callDataArr, tokenAddress, amount);
     uint256 cUsdcV3BalanceAfter = _cUsdcV3.balanceOf(address(_qwManager));
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
@@ -46,14 +48,11 @@ contract CompoundIntegration is IntegrationBase {
     assertGe(cUsdcV3BalanceAfter - cUsdcV3BalanceBefore, amount - supplyFee);
     assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
     assertEq(usdcBalanceAfter, 0);
-    vm.stopPrank();
   }
 
   function test_CloseCompound() public {
     // create investment in compound
     test_CreateCompound();
-
-    vm.startPrank(_usdcWhale);
 
     /**
      * when baseToken == lpAsset
@@ -75,6 +74,7 @@ contract CompoundIntegration is IntegrationBase {
     callDataArr[0] = callData;
 
     // close the position
+    vm.prank(_owner);
     _qwManager.close(targetQWChild, callDataArr);
 
     uint256 cUsdcV3BalanceAfter = _cUsdcV3.balanceOf(address(_qwManager));
@@ -82,6 +82,5 @@ contract CompoundIntegration is IntegrationBase {
 
     assertGe(usdcBalanceAfter - usdcBalanceBefore, cUsdcV3BalanceBefore - withdrawFee);
     assertEq(cUsdcV3BalanceAfter, 0);
-    vm.stopPrank();
   }
 }
