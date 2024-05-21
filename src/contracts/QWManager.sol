@@ -2,6 +2,8 @@
 pragma solidity 0.8.23;
 
 import {QWRegistry} from './QWRegistry.sol';
+
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {IQWChild} from 'interfaces/IQWChild.sol';
@@ -12,7 +14,7 @@ import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
  * @title Quant Wealth Manager Contract
  * @notice This contract manages the execution, closing, and withdrawal of various strategies for Quant Wealth.
  */
-contract QWManager is IQWManager {
+contract QWManager is IQWManager, Ownable {
   // Variables
   address public immutable REGISTRY;
 
@@ -22,8 +24,8 @@ contract QWManager is IQWManager {
   error CallFailed(); // Error for call failed
 
   // Constructor
-  constructor() {
-    QWRegistry _registry = new QWRegistry(address(this));
+  constructor() Ownable(msg.sender) {
+    QWRegistry _registry = new QWRegistry(address(this), msg.sender);
     REGISTRY = address(_registry);
   }
 
@@ -41,7 +43,7 @@ contract QWManager is IQWManager {
     bytes[] memory _callData,
     address _tokenAddress,
     uint256 _amount
-  ) external {
+  ) external onlyOwner {
     if (_targetQwChild.length != _callData.length) {
       revert InvalidInputLength();
     }
@@ -67,7 +69,7 @@ contract QWManager is IQWManager {
    * @param _targetQwChild List of contract addresses to interact with.
    * @param _callData Encoded function calls to be executed on the target contracts.
    */
-  function close(address[] memory _targetQwChild, bytes[] memory _callData) external {
+  function close(address[] memory _targetQwChild, bytes[] memory _callData) external onlyOwner {
     if (_targetQwChild.length != _callData.length) {
       revert InvalidInputLength();
     }
@@ -90,7 +92,7 @@ contract QWManager is IQWManager {
    * @param user The address of the user to receive the funds.
    * @param amount The amount of funds to transfer to the user.
    */
-  function withdraw(address user, uint256 amount) external {
+  function withdraw(address user, uint256 amount) external onlyOwner {
     payable(user).transfer(amount);
   }
 }
