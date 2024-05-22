@@ -13,7 +13,7 @@ contract MockQWRegistry is QWRegistry, Test {
     vm.mockCall(address(this), abi.encodeWithSignature('whitelist(address)', _key0), abi.encode(_value));
   }
 
-  constructor(address _qwManager) QWRegistry(_qwManager) {}
+  constructor(address _qwManager) QWRegistry(_qwManager, msg.sender) {}
 
   function mock_call_registerChild(address _child) public {
     // vm.mockCall(address(this), abi.encodeWithSignature('registerChild(address)', _child), abi.encode());

@@ -14,18 +14,17 @@ contract AaveIntegration is IntegrationBase {
     IntegrationBase.setUp();
 
     _qwAave = new QWAave(address(_qwManager), address(_aavePool));
+    vm.prank(_owner);
     _qwRegistry.registerChild(address(_qwAave));
   }
 
   function test_CreateAave() public {
-    vm.startPrank(_usdcWhale);
     uint256 amount = 1e12; // 1 million usdc
     bytes memory callData = '';
     address tokenAddress = address(_usdc);
 
-    console2.log(_usdc.balanceOf(_usdcWhale));
-
     // transfer usdc from user to qwManager contract
+    vm.prank(_usdcWhale);
     _usdc.transfer(address(_qwManager), amount);
     uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_qwManager));
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
@@ -38,6 +37,7 @@ contract AaveIntegration is IntegrationBase {
     callDataArr[0] = callData;
 
     // execute the investment
+    vm.prank(_owner);
     _qwManager.execute(targetQWChild, callDataArr, tokenAddress, amount);
     uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
@@ -45,14 +45,12 @@ contract AaveIntegration is IntegrationBase {
     assertGe(aUsdcBalanceAfter - aUsdcBalanceBefore, amount);
     assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
     assertEq(usdcBalanceAfter, 0);
-    vm.stopPrank();
   }
 
   function test_CloseAave() public {
     // create investment in aave
     test_CreateAave();
 
-    vm.startPrank(_usdcWhale);
     uint256 amount = _aUsdc.balanceOf(address(_qwManager));
     bytes memory callData = abi.encode(address(_usdc), address(_aUsdc), amount);
 
@@ -67,6 +65,7 @@ contract AaveIntegration is IntegrationBase {
     callDataArr[0] = callData;
 
     // close the position
+    vm.prank(_owner);
     _qwManager.close(targetQWChild, callDataArr);
 
     uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
@@ -75,6 +74,5 @@ contract AaveIntegration is IntegrationBase {
     assertGe(usdcBalanceAfter - usdcBalanceBefore, amount);
     assertEq(aUsdcBalanceBefore - aUsdcBalanceAfter, amount);
     assertEq(aUsdcBalanceAfter, 0);
-    vm.stopPrank();
   }
 }

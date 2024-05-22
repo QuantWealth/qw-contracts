@@ -16,6 +16,14 @@ contract QWAave is IQWChild {
 
   // Custom errors
   error InvalidCallData(); // Error for invalid call data
+  error UnauthorizedAccess(); // Error for unauthoruzed caller
+
+  modifier onlyQwManager() {
+    if (msg.sender != QW_MANAGER) {
+      revert UnauthorizedAccess();
+    }
+    _;
+  }
 
   /**
    * @dev Constructor to initialize the contract with required addresses.
@@ -40,7 +48,7 @@ contract QWAave is IQWChild {
     bytes memory _callData,
     address _tokenAddress,
     uint256 _amount
-  ) external override returns (bool success) {
+  ) external override onlyQwManager returns (bool success) {
     if (_callData.length != 0) {
       revert InvalidCallData();
     }
@@ -59,7 +67,7 @@ contract QWAave is IQWChild {
    * @param _callData Encoded function call data containing the asset and amount to be withdrawn.
    * @return success boolean indicating the success of the transaction.
    */
-  function close(bytes memory _callData) external override returns (bool success) {
+  function close(bytes memory _callData) external override onlyQwManager returns (bool success) {
     if (_callData.length == 0) {
       revert InvalidCallData();
     }
