@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity 0.8.23;
 
-import {IComet, IERC20, IQWChild, QWCompound} from 'contracts/child/QWCompound.sol';
 import {Test} from 'forge-std/Test.sol';
-import {MockQWCompound} from 'test/smock/child/MockQWCompound.sol';
+import {MockQWAaveV2} from 'test/smock/child/MockQWAaveV2.sol';
 
 contract UnitQWAaveV3Test is Test {
-  MockQWCompound public mockQWCompund;
+  MockQWAaveV2 public mockQWAaveV2;
   address public qwManager;
-  address public comet;
+  address public lendingPool;
 
   function setUp() public {
     qwManager = address(0x123);
-    comet = address(0x456);
-    mockQWCompund = new MockQWCompound(qwManager, comet);
+    lendingPool = address(0x456);
+    mockQWAaveV2 = new MockQWAaveV2(qwManager, lendingPool);
   }
 
   function test_Create_Success() public {
@@ -22,10 +21,10 @@ contract UnitQWAaveV3Test is Test {
     uint256 amount = 100;
 
     // Mock a successful call to IPool.supply
-    mockQWCompund.mock_call_create(callData, tokenAddress, amount, true);
+    mockQWAaveV2.mock_call_create(callData, tokenAddress, amount, true);
 
     // Call the create function
-    bool success = mockQWCompund.create(callData, tokenAddress, amount);
+    bool success = mockQWAaveV2.create(callData, tokenAddress, amount);
 
     assertTrue(success, 'Create function should return true on success');
   }
@@ -34,10 +33,10 @@ contract UnitQWAaveV3Test is Test {
     bytes memory callData = abi.encode(address(0x123), uint256(100));
 
     // Mock a successful call to IPool.withdraw
-    mockQWCompund.mock_call_close(callData, true);
+    mockQWAaveV2.mock_call_close(callData, true);
 
     // Call the close function
-    bool success = mockQWCompund.close(callData);
+    bool success = mockQWAaveV2.close(callData);
 
     assertTrue(success, 'Close function should return true on success');
   }
