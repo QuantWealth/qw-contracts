@@ -33,11 +33,11 @@
     "package.json": "sort-package-json"
   },
   "dependencies": {
-    "@aave/core-v3": "^1.19.3",
-    "@aave/periphery-v3": "^2.5.2",
-    "@aave/protocol-v2": "^1.0.1",
-    "@defi-wonderland/smock-foundry": "^1.5.0",
-    "@openzeppelin/contracts": "^5.0.2"
+    "@aave/core-v3": "1.19.3",
+    "@aave/periphery-v3": "2.5.2",
+    "@aave/protocol-v2": "1.0.1",
+    "@defi-wonderland/smock-foundry": "1.5.0",
+    "@openzeppelin/contracts": "5.0.2"
   },
   "devDependencies": {
     "@commitlint/cli": "19.3.0",
