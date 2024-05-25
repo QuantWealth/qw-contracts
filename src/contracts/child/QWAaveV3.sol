@@ -6,10 +6,10 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IQWChild} from 'interfaces/IQWChild.sol';
 
 /**
- * @title Aave Integration for Quant Wealth
- * @notice This contract integrates with Aave protocol for Quant Wealth management.
+ * @title AaveV3 Integration for Quant Wealth
+ * @notice This contract integrates with AaveV3 protocol for Quant Wealth management.
  */
-contract QWAave is IQWChild {
+contract QWAaveV3 is IQWChild {
   // Variables
   address public immutable QW_MANAGER;
   address public immutable POOL;
@@ -28,7 +28,7 @@ contract QWAave is IQWChild {
   /**
    * @dev Constructor to initialize the contract with required addresses.
    * @param _qwManager The address of the Quant Wealth Manager contract.
-   * @param _pool The address of the Aave pool contract.
+   * @param _pool The address of the AaveV3 pool contract.
    */
   constructor(address _qwManager, address _pool) {
     QW_MANAGER = _qwManager;
@@ -37,8 +37,8 @@ contract QWAave is IQWChild {
 
   // Functions
   /**
-   * @notice Executes a transaction on Aave pool to deposit tokens.
-   * @dev This function is called by the parent contract to deposit tokens into the Aave pool.
+   * @notice Executes a transaction on AaveV3 pool to deposit tokens.
+   * @dev This function is called by the parent contract to deposit tokens into the AaveV3 pool.
    * @param _callData Encoded function call data (not used in this implementation).
    * @param _tokenAddress Address of the token to be deposited.
    * @param _amount Amount of tokens to be deposited.
@@ -62,8 +62,8 @@ contract QWAave is IQWChild {
   }
 
   /**
-   * @notice Executes a transaction on Aave pool to withdraw tokens.
-   * @dev This function is called by the parent contract to withdraw tokens from the Aave pool.
+   * @notice Executes a transaction on AaveV3 pool to withdraw tokens.
+   * @dev This function is called by the parent contract to withdraw tokens from the AaveV3 pool.
    * @param _callData Encoded function call data containing the asset and amount to be withdrawn.
    * @return success boolean indicating the success of the transaction.
    */

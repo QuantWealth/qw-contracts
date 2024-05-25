@@ -7,12 +7,12 @@ import {MockQWManager} from 'test/smock/MockQWManager.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
 
 import {SmockHelper} from 'test/smock/SmockHelper.sol';
-import {MockQWAave} from 'test/smock/child/MockQWAave.sol';
+import {MockQWAaveV3} from 'test/smock/child/MockQWAaveV3.sol';
 
 contract UnitQWManagerTest is Test, SmockHelper {
   MockQWManager public mockQWManager;
   // MockQWRegistry public mockQWRegistry;
-  MockQWAave public mockQWAave;
+  MockQWAaveV3 public mockQWAaveV3;
   address[] public targetQWChild;
   address public tokenAddress;
   uint256 public amount;
@@ -20,8 +20,8 @@ contract UnitQWManagerTest is Test, SmockHelper {
   function setUp() public {
     mockQWManager = MockQWManager(deployMock('QWManager', type(MockQWManager).creationCode, abi.encode()));
     // mockQWRegistry = new MockQWRegistry(mockQWManager.REGISTRY());
-    mockQWAave = new MockQWAave(address(mockQWManager), address(0x456));
-    targetQWChild = [address(mockQWAave)];
+    mockQWAaveV3 = new MockQWAaveV3(address(mockQWManager), address(0x456));
+    targetQWChild = [address(mockQWAaveV3)];
 
     tokenAddress = address(0x123);
     amount = 100;
