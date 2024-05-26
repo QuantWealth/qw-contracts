@@ -58,20 +58,30 @@ yarn coverage
 
 ## Deploy & verify
 
-### Setup
+### Environment Setup
 
-Configure the `.env` variables.
+Copy the sample environment file located in `env/` into the target subdirectory of your choice (e.g., `testnet` or `mainnet`) and prefix the filename with your blockchain of choice:
 
-### Sepolia
-
-```bash
-yarn deploy:sepolia
+```
+mkdir env/testnet
+cp env/.env.sample env/testnet/sepolia.env
 ```
 
-### Mainnet
+Do this for each blockchain network that the `QWManager` and `QWChild` contracts will be deployed to. Then configure each `.env` file.
 
-```bash
-yarn deploy:mainnet
+### Deploy
+
+Deploy the `QwManager` and `QwChild` contracts by running the following command for each target network:
+
+```
+bash sh/deploy.sh -n NETWORK_TYPE -c CHAIN_NAME -k PRIVATE_KEY -s DEPLOYMENT_SCRIPT -v VERIFICATION_KEY
+```
+
+```
+# Argument examples
+-n testnet, mainnet
+-c avalanche, ethereum, sepolia
+-s DeployQwManager.s.sol, child/DeployQWAaveV2.s.sol
 ```
 
 The deployments are stored in ./broadcast

@@ -1,0 +1,8 @@
+{
+    "contracts": {
+        "11155111": {
+            "QWManager": "0x91C8b0B2F520A552D439B36e3179eeb8F3534F23",
+            "QWRegistry": "0x06c8cf53a68FcB4d169deEF6EC7C180cB3F6d2Dc"
+        }
+    }
+}
