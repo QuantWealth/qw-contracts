@@ -15,8 +15,6 @@ contract DeployQwManager is Script {
     // Deploy QwManager
     qwManager = new QWManager();
 
-    qwRegistry = new QWRegistry(address(qwManager), msg.sender);
-
     vm.stopBroadcast();
   }
 }
