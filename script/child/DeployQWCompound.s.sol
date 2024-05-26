@@ -2,8 +2,9 @@
 pragma solidity 0.8.23;
 
 import {DeployBase} from '../helpers/DeployBase.sol';
-import {QWRegistry} from 'contracts/QWRegistry.sol';
+
 import {QWManager} from 'contracts/QWManager.sol';
+import {QWRegistry} from 'contracts/QWRegistry.sol';
 import {QWCompound} from 'contracts/child/QWCompound.sol';
 import {Script} from 'forge-std/Script.sol';
 

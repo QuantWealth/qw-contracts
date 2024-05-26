@@ -7,7 +7,7 @@ import {Test, console2} from 'forge-std/Test.sol';
 import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 
 contract IntegrationBase is Test {
-  uint256 internal constant _FORK_BLOCK = 18_920_905;
+  uint256 internal constant _FORK_BLOCK = 19_900_000;
 
   address internal _user = makeAddr('user');
   address internal _owner = makeAddr('owner');
