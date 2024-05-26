@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {DeployBase} from '../helpers/DeployBase.sol';
 import {QWRegistry} from 'contracts/QWRegistry.sol';
+import {QWManager} from 'contracts/QWManager.sol';
 import {QWCompound} from 'contracts/child/QWCompound.sol';
 import {Script} from 'forge-std/Script.sol';
 
@@ -13,6 +14,7 @@ contract DeployQWCompound is Script, DeployBase {
 
   QWCompound public qwCompound;
   QWRegistry public qwRegistry;
+  QWManager public qwManager;
 
   error InvalidAddress(); // Error for invalid registry address
 
@@ -23,7 +25,10 @@ contract DeployQWCompound is Script, DeployBase {
     DeploymentBaseParams memory baseParams = _readBaseEnvVariables();
     ConfigParams memory configParams = _readEnvVariables();
 
-    qwRegistry = QWRegistry(baseParams.qwRegistry);
+    qwManager = QWManager(baseParams.qwManager);
+
+    address registryAddr = qwManager.REGISTRY();
+    qwRegistry = QWRegistry(registryAddr);
 
     // Deploy QwChild
     qwCompound = new QWCompound(baseParams.qwManager, configParams.compoundComet);

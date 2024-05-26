@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {DeployBase} from '../helpers/DeployBase.sol';
 import {QWRegistry} from 'contracts/QWRegistry.sol';
+import {QWManager} from 'contracts/QWManager.sol';
 import {QWAaveV2} from 'contracts/child/QWAaveV2.sol';
 import {Script} from 'forge-std/Script.sol';
 
@@ -13,6 +14,7 @@ contract DeployQWAaveV2 is Script, DeployBase {
 
   QWAaveV2 public qwAaveV2;
   QWRegistry public qwRegistry;
+  QWManager public qwManager;
 
   error InvalidAddress(); // Error for invalid registry address
 
@@ -23,7 +25,10 @@ contract DeployQWAaveV2 is Script, DeployBase {
     DeploymentBaseParams memory baseParams = _readBaseEnvVariables();
     ConfigParams memory configParams = _readEnvVariables();
 
-    qwRegistry = QWRegistry(baseParams.qwRegistry);
+    qwManager = QWManager(baseParams.qwManager);
+
+    address registryAddr = qwManager.REGISTRY();
+    qwRegistry = QWRegistry(registryAddr);
 
     // Deploy QwChild
     qwAaveV2 = new QWAaveV2(baseParams.qwManager, configParams.aaveLendingPool);
