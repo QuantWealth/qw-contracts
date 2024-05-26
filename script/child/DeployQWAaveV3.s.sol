@@ -8,6 +8,10 @@ import {QWRegistry} from 'contracts/QWRegistry.sol';
 import {QWAaveV3} from 'contracts/child/QWAaveV3.sol';
 import {Script} from 'forge-std/Script.sol';
 
+/**
+ * @title QwAaveV3 Deployment Script
+ * @notice This deploys QwAaveV3 child contracts
+ */
 contract DeployQWAaveV3 is Script, DeployBase {
   struct ConfigParams {
     address aavePool;
@@ -41,7 +45,6 @@ contract DeployQWAaveV3 is Script, DeployBase {
   }
 
   function _readEnvVariables() internal view returns (ConfigParams memory configParams) {
-    // Chain ID.
     configParams.aavePool = vm.envAddress('AAVE_V3_POOL');
     if (configParams.aavePool == address(0)) revert InvalidAddress();
   }

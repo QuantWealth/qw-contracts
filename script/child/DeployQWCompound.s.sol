@@ -8,6 +8,10 @@ import {QWRegistry} from 'contracts/QWRegistry.sol';
 import {QWCompound} from 'contracts/child/QWCompound.sol';
 import {Script} from 'forge-std/Script.sol';
 
+/**
+ * @title QwCompound Deployment Script
+ * @notice This deploys QwCompound child contracts
+ */
 contract DeployQWCompound is Script, DeployBase {
   struct ConfigParams {
     address compoundComet;
@@ -41,7 +45,6 @@ contract DeployQWCompound is Script, DeployBase {
   }
 
   function _readEnvVariables() internal view returns (ConfigParams memory configParams) {
-    // Chain ID.
     configParams.compoundComet = vm.envAddress('COMPOUND_COMET_POOL');
     if (configParams.compoundComet == address(0)) revert InvalidAddress();
   }

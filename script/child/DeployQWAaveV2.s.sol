@@ -8,6 +8,10 @@ import {QWRegistry} from 'contracts/QWRegistry.sol';
 import {QWAaveV2} from 'contracts/child/QWAaveV2.sol';
 import {Script} from 'forge-std/Script.sol';
 
+/**
+ * @title QwAaveV2 Deployment Script
+ * @notice This deploys QwAaveV2 child contracts
+ */
 contract DeployQWAaveV2 is Script, DeployBase {
   struct ConfigParams {
     address aaveLendingPool;
@@ -40,8 +44,8 @@ contract DeployQWAaveV2 is Script, DeployBase {
     vm.stopBroadcast();
   }
 
+  // TODO: make it a shared function that all child contracts can access
   function _readEnvVariables() internal view returns (ConfigParams memory configParams) {
-    // Chain ID.
     configParams.aaveLendingPool = vm.envAddress('AAVE_V2_LENDING_POOL');
     if (configParams.aaveLendingPool == address(0)) revert InvalidAddress();
   }
