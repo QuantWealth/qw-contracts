@@ -2,7 +2,8 @@
     "contracts": {
         "11155111": {
             "QWManager": "0x91C8b0B2F520A552D439B36e3179eeb8F3534F23",
-            "QWRegistry": "0x06c8cf53a68FcB4d169deEF6EC7C180cB3F6d2Dc"
+            "QWRegistry": "0x06c8cf53a68FcB4d169deEF6EC7C180cB3F6d2Dc",
+            "QWAaveV3": "0xD8D727088b40dB7441501842D789D4727fDEbFA9"
         }
     }
-}
+} 
