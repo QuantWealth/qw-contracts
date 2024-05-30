@@ -2,7 +2,6 @@
 pragma solidity 0.8.23;
 
 import {QWRegistry} from './QWRegistry.sol';
-
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
@@ -25,11 +24,13 @@ contract QWManager is IQWManager, Ownable {
 
   // Constructor
   constructor() Ownable(msg.sender) {
+    // Deploy the QWRegistry contract and set the REGISTRY address
     QWRegistry _registry = new QWRegistry(address(this), msg.sender);
     REGISTRY = address(_registry);
   }
 
   // External Functions
+
   /**
    * @notice Execute a series of investments.
    * Transfers specified amounts of tokens and calls target contracts with provided calldata.
@@ -49,13 +50,16 @@ contract QWManager is IQWManager, Ownable {
     }
 
     for (uint256 i = 0; i < _targetQwChild.length; i++) {
+      // Check if the target contract is whitelisted
       if (!IQWRegistry(REGISTRY).whitelist(_targetQwChild[i])) {
         revert ContractNotWhitelisted();
       }
 
+      // Approve the target contract to spend the specified amount of tokens
       IERC20 token = IERC20(_tokenAddress);
       token.approve(address(_targetQwChild[i]), _amount);
 
+      // Call the create function on the target contract with the provided calldata
       (bool success) = IQWChild(_targetQwChild[i]).create(_callData[i], _tokenAddress, _amount);
       if (!success) {
         revert CallFailed();
@@ -75,10 +79,12 @@ contract QWManager is IQWManager, Ownable {
     }
 
     for (uint256 i = 0; i < _targetQwChild.length; i++) {
+      // Decode the calldata to get the LP asset address and amount
       (, address lpAsset, uint256 amount) = abi.decode(_callData[i], (address, address, uint256));
       IERC20 token = IERC20(lpAsset);
       token.approve(address(_targetQwChild[i]), amount);
 
+      // Call the close function on the target contract with the provided calldata
       (bool success) = IQWChild(_targetQwChild[i]).close(_callData[i]);
       if (!success) {
         revert CallFailed();
@@ -90,9 +96,23 @@ contract QWManager is IQWManager, Ownable {
    * @notice Withdraw funds to a specified user.
    * Transfers a specified amount of funds to the user.
    * @param user The address of the user to receive the funds.
-   * @param amount The amount of funds to transfer to the user.
+   * @param _tokenAddress The address of the token to transfer.
+   * @param _amount The amount of funds to transfer to the user.
    */
-  function withdraw(address user, uint256 amount) external onlyOwner {
-    payable(user).transfer(amount);
+  function withdraw(address user, address _tokenAddress, uint256 _amount) external onlyOwner {
+    IERC20 token = IERC20(_tokenAddress);
+    token.transfer(user, _amount);
+  }
+
+  /**
+   * @notice Receive funds from a specified user.
+   * Transfers a specified amount of funds from the user to this contract.
+   * @param user The address of the user sending the funds.
+   * @param _tokenAddress The address of the token to transfer.
+   * @param _amount The amount of funds to transfer to this contract.
+   */
+  function receiveFunds(address user, address _tokenAddress, uint256 _amount) external {
+    IERC20 token = IERC20(_tokenAddress);
+    token.transferFrom(user, address(this), _amount);
   }
 }
