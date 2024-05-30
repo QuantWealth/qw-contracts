@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.0;
 
-import {QWAaveV3} from '../../../src/contracts/child/QWAaveV3.sol';
+import {IERC20, IPool, IQWChild, QWAaveV3} from '../../../src/contracts/child/QWAaveV3.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockQWAaveV3 is QWAaveV3, Test {

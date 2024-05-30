@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.0;
 
-import {IQWChild, IQWRegistry, QWRegistry} from '../../src/contracts/QWRegistry.sol';
+import {IQWChild, IQWRegistry, Ownable, QWRegistry} from '../../src/contracts/QWRegistry.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockQWRegistry is QWRegistry, Test {
@@ -16,6 +16,6 @@ contract MockQWRegistry is QWRegistry, Test {
   constructor(address _qwManager) QWRegistry(_qwManager, msg.sender) {}
 
   function mock_call_registerChild(address _child) public {
-    // vm.mockCall(address(this), abi.encodeWithSignature('registerChild(address)', _child), abi.encode());
+    vm.mockCall(address(this), abi.encodeWithSignature('registerChild(address)', _child), abi.encode());
   }
 }
