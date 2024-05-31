@@ -1,14 +1,11 @@
 {
-  "name": "solidity-foundry-boilerplate",
-  "version": "1.0.0",
-  "description": "Production ready Solidity boilerplate with Foundry",
-  "homepage": "https://github.com/defi-wonderland/solidity-foundry-boilerplate#readme",
+  "name": "qw-contracts",
+  "version": "0.0.1",
+  "description": "contracts for QuantWealth",
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/defi-wonderland/solidity-foundry-boilerplate.git"
+    "type": "git"
   },
   "license": "MIT",
-  "author": "Wonderland",
   "scripts": {
     "build": "forge build",
     "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
