@@ -39,7 +39,7 @@ contract DeployQWUniswapV3Stable is Script, DeployBase {
     qwRegistry = QWRegistry(registryAddr);
 
     // Deploy QwChild
-    qWUniswapV3Stable = new QWUniswapV3Stable(baseParams.qwManager, configParams.nonFungiblePositionManager, configParams.uniswapFactory, configParams.weth9, configParams.uniswapFactory);
+    qWUniswapV3Stable = new QWUniswapV3Stable(baseParams.qwManager, configParams.nonFungiblePositionManager, configParams.uniswapFactory, configParams.weth9, configParams.uniswapV3StablePool);
 
     // Register Child in registry
     qwRegistry.registerChild(address(qWUniswapV3Stable));
