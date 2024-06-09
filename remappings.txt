@@ -4,3 +4,4 @@ solmate/=node_modules/solmate/src
 
 contracts/=src/contracts
 interfaces/=src/interfaces
+libraries/=src/libraries
