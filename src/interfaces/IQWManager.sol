@@ -7,27 +7,18 @@ pragma solidity 0.8.23;
  */
 interface IQWManager {
   /**
-   * @notice Execute a series of investments.
+   * @notice Execute a series of investments in batches for multiple protocols.
    * Transfers specified amounts of tokens and calls target contracts with provided calldata.
-   * @param _targetQwChild List of contract addresses to interact with.
-   * @param _callData Encoded function calls to be executed on the target contracts.
-   * @param _tokenAddress Token address to transfer.
-   * @param _amount Amount of tokens to transfer to each target contract.
+   * @param batches Array of ExecuteBatch data containing protocol, users, contributions, token, and amount.
    */
-  function execute(
-    address[] memory _targetQwChild,
-    bytes[] memory _callData,
-    address _tokenAddress,
-    uint256 _amount
-  ) external;
+  function execute(ExecuteBatch[] memory batches) external;
 
   /**
-   * @notice Close a series of investments.
+   * @notice Close a series of investments in batches for multiple protocols.
    * Calls target contracts with provided calldata to close positions.
-   * @param _targetQwChild List of contract addresses to interact with.
-   * @param _callData Encoded function calls to be executed on the target contracts.
+   * @param batches Array of CloseBatch data containing protocol, users, contributions, token, and shares.
    */
-  function close(address[] memory _targetQwChild, bytes[] memory _callData) external;
+  function close(CloseBatch[] memory batches) external;
 
   /**
    * @notice Withdraw funds to a specified user.
@@ -52,4 +43,32 @@ interface IQWManager {
    * @return The address of the registry contract.
    */
   function REGISTRY() external view returns (address);
+
+  /**
+   * @notice ExecuteBatch struct to hold batch data for executing investments.
+   * @param protocol The protocol into which we are investing funds.
+   * @param users The users investing.
+   * @param contributions Contribution fractions in basis points (e.g., 1% = 100, 100% = 10000).
+   * @param amount The total amount being invested in the given token by all users into this protocol.
+   */
+  struct ExecuteBatch {
+      address protocol;
+      address[] users;
+      uint256[] contributions;
+      uint256 amount;
+  }
+
+  /**
+   * @notice CloseBatch struct to hold batch data for closing investments.
+   * @param protocol The protocol from which we are withdrawing funds.
+   * @param users The users withdrawing.
+   * @param contributions Contribution fractions in basis points (e.g., 1% = 100, 100% = 10000).
+   * @param shares The total shares being withdrawn from the given protocol by all users.
+   */
+  struct CloseBatch {
+      address protocol;
+      address[] users;
+      uint256[] contributions;
+      uint256 shares;
+  }
 }
