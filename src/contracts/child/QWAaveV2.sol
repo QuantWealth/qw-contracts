@@ -15,7 +15,7 @@ contract QWAaveV2 is IQWChild {
     address public immutable QW_MANAGER;
     address public immutable LENDING_POOL;
     address public immutable INVESTMENT_TOKEN;
-    address public immutable A_INVESTMENT_TOKEN;
+    address public immutable A_TOKEN;
 
     // Custom errors
     error InvalidCallData(); // Error for invalid call data
@@ -44,7 +44,7 @@ contract QWAaveV2 is IQWChild {
         QW_MANAGER = _qwManager;
         LENDING_POOL = _lendingPool;
         INVESTMENT_TOKEN = _investmentToken;
-        A_INVESTMENT_TOKEN = _aInvestmentToken;
+        A_TOKEN = _aInvestmentToken;
     }
 
     // Functions
@@ -134,7 +134,7 @@ contract QWAaveV2 is IQWChild {
      */
     function getInvestmentValue() public view returns (uint256 investmentValue) {
         // Get the balance of aTokens, which will reflect the principle investment(s) + interest.
-        uint256 aTokenBalance = IAToken(A_INVESTMENT_TOKEN).balanceOf(address(this));
+        uint256 aTokenBalance = IAToken(A_TOKEN).balanceOf(address(this));
         return aTokenBalance;
     }
 
