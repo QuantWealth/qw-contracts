@@ -88,7 +88,13 @@ contract QWManager is IQWManager, Ownable {
             protocols[batch.protocol] = protocol;
 
             // Emit deposit event.
-            emit ProtocolDeposit(block.timestamp, batch.protocol, batch.amount, previousAmount, previousAmount + assetAmountReceived);
+            emit ProtocolDeposit(
+                block.timestamp,
+                batch.protocol,
+                batch.amount,
+                previousAmount,
+                previousAmount + assetAmountReceived
+            );
         }
     }
 
