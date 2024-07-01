@@ -150,29 +150,4 @@ contract QWManager is IQWManager, Ownable {
         IERC20 token = IERC20(_tokenAddress);
         token.transferFrom(_user, address(this), _amount);
     }
-
-    // Internal Functions
-
-    /**
-     * @notice Internal function to update shares on deposit.
-     * @param user The address of the user whose shares are being updated.
-     * @param sharesAmount The amount of shares to add to the user's balance.
-     * @param totalSharesProtocol The total shares in the protocol before the deposit.
-     * @param protocol The address of the protocol.
-     */
-    function _updateSharesOnDeposit(address user, uint256 sharesAmount, uint256 totalSharesProtocol, address protocol) internal {
-        shares[protocol][user] += sharesAmount;
-        totalShares[protocol] = totalSharesProtocol + sharesAmount;
-    }
-
-    /**
-     * @notice Internal function to update shares on withdrawal.
-     * @param user The address of the user whose shares are being updated.
-     * @param userShares The amount of shares to subtract from the user's balance.
-     * @param protocol The address of the protocol.
-     */
-    function _updateSharesOnWithdrawal(address user, uint256 userShares, address protocol) internal {
-        shares[protocol][user] -= userShares;
-        totalShares[protocol] -= userShares;
-    }
 }
