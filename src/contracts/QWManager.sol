@@ -13,13 +13,31 @@ import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
  * @notice This contract manages the execution, closing, and withdrawal of various strategies for Quant Wealth.
  */
 contract QWManager is IQWManager, Ownable {
+    struct Protocol {
+        address assetAddress;
+        uint256 assetAmount;
+        address investmentToken;
+    }
+
     // Variables
     address public immutable REGISTRY;
 
-    // Mapping to store user shares for each protocol
-    mapping(address => mapping(address => uint256)) public shares;
-    // Mapping to store total shares for each protocol
-    mapping(address => uint256) public totalShares;
+    // Tracks protocol assets and other information.
+    mapping(address => Protocol) public protocols;
+
+    event ProtocolDeposit(
+        uint256 indexed epoch,
+        address indexed protocol,
+        uint256 amount,
+        uint256 previousTotalHoldings,
+        uint256 newTotalHoldings
+    );
+    event ProtocolWithdrawal(
+        uint256 indexed epoch,
+        address indexed protocol,
+        uint256 ratio,
+        uint256 tokenAmountReceived
+    );
 
     // Custom errors
     error InvalidInputLength(); // Error for mismatched input lengths
@@ -40,36 +58,37 @@ contract QWManager is IQWManager, Ownable {
      * Transfers specified amounts of tokens and calls target contracts with provided calldata.
      * @param batches Array of ExecuteBatch data containing protocol, users, contributions, token, and amount.
      */
-    function execute(ExecuteBatch[] memory batches) external onlyOwner {
+    function open(OpenBatch[] memory batches) external onlyOwner {
         for (uint256 i = 0; i < batches.length; i++) {
-            ExecuteBatch memory batch = batches[i];
+            OpenBatch memory batch = batches[i];
 
             // Check if the target contract is whitelisted
             if (!IQWRegistry(REGISTRY).whitelist(batch.protocol)) {
                 revert ContractNotWhitelisted();
             }
 
-            // Approve the target contract to spend the specified amount of tokens
-            IERC20 token = IERC20(batch.token);
+            // Get the protocol asset details.
+            Protocol memory protocol = protocols[batch.protocol];
+            uint256 previousAmount = protocol.assetAmount;
+
+            // Approve the target contract to spend the specified amount of tokens.
+            IERC20 token = IERC20(protocol.investmentToken);
             token.approve(address(batch.protocol), batch.amount);
 
-            // Encode necessary data for child contract
-            bytes memory encodedData = abi.encode(totalShares[batch.protocol]);
-
-            // Call the create function on the target contract with the provided calldata
-            (bool success, bytes memory result) = IQWChild(batch.protocol).create(encodedData, batch.amount);
+            // Call the create function on the target contract with the provided calldata.
+            (bool success, uint256 assetAmountReceived) = IQWChild(batch.protocol).open(batch.amount);
             if (!success) {
+                // TODO: Event for batches that fail.
                 revert CallFailed();
             }
+            // TODO: Ensure protocol asset correct amount was transferred.
 
-            // Decode shares from result
-            (uint256 totalSharesReceived) = abi.decode(result, (uint256));
+            // Update the protocol with a new asset amount for the asset we have purchased.
+            protocol.assetAmount = previousAmount + assetAmountReceived;
+            protocols[batch.protocol] = protocol;
 
-            // Distribute the shares to users
-            for (uint256 j = 0; j < batch.users.length; j++) {
-                uint256 userShare = (totalSharesReceived * batch.contributions[j]) / 10000;
-                _updateSharesOnDeposit(batch.users[j], userShare, totalShares[batch.protocol], batch.protocol);
-            }
+            // Emit deposit event.
+            emit ProtocolDeposit(block.timestamp, batch.protocol, batch.amount, previousAmount, previousAmount + assetAmountReceived);
         }
     }
 
@@ -82,29 +101,29 @@ contract QWManager is IQWManager, Ownable {
         for (uint256 i = 0; i < batches.length; i++) {
             CloseBatch memory batch = batches[i];
 
-            // Encode necessary data for child contract
-            bytes memory encodedData = abi.encode(totalShares[batch.protocol]);
+            // Get the protocol asset details.
+            Protocol memory protocol = protocols[batch.protocol];
+            uint256 totalHoldings = protocol.assetAmount;
 
-            // Call the close function on the target contract with the provided calldata
-            (bool success, bytes memory result) = IQWChild(batch.protocol).close(
-                encodedData,
-                batch.shares
-            );
+            // Calculate the amount to withdraw based on the ratio provided.
+            uint256 amountToWithdraw = (totalHoldings * batch.ratio) / 1e8;
+
+            // Update the protocol asset details.
+            protocol.assetAmount -= amountToWithdraw;
+            protocols[batch.protocol] = protocol;
+
+            // Transfer tokens to the child contract.
+            IERC20(protocol.assetAddress).transfer(batch.protocol, amountToWithdraw);
+
+            // Call the close function on the child contract.
+            (bool success, uint256 tokenAmountReceived) = IQWChild(batch.protocol).close(batch.ratio);
             if (!success) {
                 revert CallFailed();
             }
+            // TODO: Ensure tokens were transferred. Tokens received will be protocol.investmentToken.
 
-            // Decode tokens received from result
-            (uint256 tokens) = abi.decode(result, (uint256));
-
-            // Distribute the tokens to users
-            for (uint256 j = 0; j < batch.users.length; j++) {
-                // TODO: Handle potential leftover value due to division rounding
-                _updateSharesOnWithdrawal(batch.users[j], batch.contributions[j], batch.protocol);
-                uint256 userShares = (batch.shares * batch.contributions[j]) / 10000;
-                // TODO: transfer userTokens to user
-                // uint256 userTokens = (tokens * batch.contributions[j]) / 10000;
-            }
+            // Emit withdrawal event.
+            emit ProtocolWithdrawal(block.timestamp, batch.protocol, batch.ratio, tokenAmountReceived);
         }
     }
 

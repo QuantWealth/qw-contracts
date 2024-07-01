@@ -13,7 +13,7 @@ interface IQWChild {
    * @return success boolean indicating whether the transaction was successful.
    * @return assetAmountReceived The total amount of asset tokens received in return for the investment.
    */
-  function create(
+  function open(
     uint256 _amount
   ) external returns (bool success, uint256 assetAmountReceived);
 
