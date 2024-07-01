@@ -9,28 +9,37 @@ interface IQWChild {
   /**
    * @notice Executes a transaction on the child contract.
    * @dev This function is called by the parent contract to execute a transaction on the child contract.
-   * @param _callData Encoded function call to be executed on the child contract.
-   * @param _tokenAmount Amount of tokens to be transferred to the child contract.
+   * @param _amount Amount of tokens to be transferred to the child contract.
    * @return success boolean indicating whether the transaction was successful.
-   * @return shares Number of shares to be allocated to the user in return for investment created.
+   * @return assetAmountReceived The total amount of asset tokens received in return for the investment.
    */
   function create(
-    bytes memory _callData,
-    uint256 _tokenAmount
-  ) external returns (bool success, uint256 shares);
+    uint256 _amount
+  ) external returns (bool success, uint256 assetAmountReceived);
 
   /**
    * @notice Closes a transaction on the child contract.
    * @dev This function is called by the parent contract to close a transaction on the child contract.
-   * @param _callData Encoded function call to be executed on the child contract.
-   * @param _sharesAmount Amount of shares to be withdrawn, will determine tokens withdrawn.
+   * @param _ratio Percentage of holdings to be withdrawn, with 8 decimal places for precision.
    * @return success boolean indicating whether the transaction was successfully closed.
-   * @return tokens Number of tokens to be returned to the user in exchange for shares withdrawn.
+   * @return tokenAmountReceived Number of tokens to be returned to the user in exchange for the withdrawn ratio.
    */
   function close(
-    bytes memory _callData,
-    uint256 _sharesAmount
-  ) external returns (bool success, uint256 tokens);
+    uint256 _ratio
+  ) external returns (bool success, uint256 tokenAmountReceived);
+
+  /**
+   * @notice Gets the total amount of the asset currently held.
+   * @return uint256 The total amount of the asset currently held.
+   */
+  function holdings() external view returns (uint256);
+
+  /**
+   * @notice Calculates the amount of tokens to be withdrawn for a given ratio.
+   * @param _ratio Percentage of holdings for which to calculate a withdraw, with 8 decimal places for precision.
+   * @return uint256 The amount of tokens that would be received for the given ratio.
+   */
+  function calc(uint256 _ratio) external view returns (uint256);
 
   /**
    * @notice Gets the address of the Quant Wealth Manager contract.

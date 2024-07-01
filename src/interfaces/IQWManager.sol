@@ -9,14 +9,14 @@ interface IQWManager {
   /**
    * @notice Execute a series of investments in batches for multiple protocols.
    * Transfers specified amounts of tokens and calls target contracts with provided calldata.
-   * @param batches Array of ExecuteBatch data containing protocol, users, contributions, token, and amount.
+   * @param batches Array of ExecuteBatch data containing protocol and amount.
    */
   function execute(ExecuteBatch[] memory batches) external;
 
   /**
    * @notice Close a series of investments in batches for multiple protocols.
    * Calls target contracts with provided calldata to close positions.
-   * @param batches Array of CloseBatch data containing protocol, users, contributions, token, and shares.
+   * @param batches Array of CloseBatch data containing protocol and ratio.
    */
   function close(CloseBatch[] memory batches) external;
 
@@ -47,28 +47,20 @@ interface IQWManager {
   /**
    * @notice ExecuteBatch struct to hold batch data for executing investments.
    * @param protocol The protocol into which we are investing funds.
-   * @param users The users investing.
-   * @param contributions Contribution fractions in basis points (e.g., 1% = 100, 100% = 10000).
    * @param amount The total amount being invested in the given token by all users into this protocol.
    */
   struct ExecuteBatch {
       address protocol;
-      address[] users;
-      uint256[] contributions;
       uint256 amount;
   }
 
   /**
    * @notice CloseBatch struct to hold batch data for closing investments.
    * @param protocol The protocol from which we are withdrawing funds.
-   * @param users The users withdrawing.
-   * @param contributions Contribution fractions in basis points (e.g., 1% = 100, 100% = 10000).
-   * @param shares The total shares being withdrawn from the given protocol by all users.
+   * @param ratio The percentage amount of holdings to withdraw from the given protocol.
    */
   struct CloseBatch {
       address protocol;
-      address[] users;
-      uint256[] contributions;
-      uint256 shares;
+      uint256 ratio;
   }
 }
