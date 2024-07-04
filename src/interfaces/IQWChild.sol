@@ -27,4 +27,10 @@ interface IQWChild {
   function close(
     uint256 _amount
   ) external returns (bool success, uint256 tokenAmountReceived);
+
+  /**
+   * @notice Gets the address of the Quant Wealth Manager contract.
+   * @return address The address of the Quant Wealth Manager contract recorded in this child contract.
+   */
+  function QW_MANAGER() external view returns (address);
 }

@@ -15,6 +15,8 @@ import {Script} from 'forge-std/Script.sol';
 contract DeployQWAaveV2 is Script, DeployBase {
   struct ConfigParams {
     address aaveLendingPool;
+    address investmentToken;
+    address assetToken;
   }
 
   QWAaveV2 public qwAaveV2;
@@ -36,7 +38,12 @@ contract DeployQWAaveV2 is Script, DeployBase {
     qwRegistry = QWRegistry(registryAddr);
 
     // Deploy QwChild
-    qwAaveV2 = new QWAaveV2(baseParams.qwManager, configParams.aaveLendingPool);
+    qwAaveV2 = new QWAaveV2(
+      baseParams.qwManager,
+      configParams.aaveLendingPool,
+      configParams.investmentToken,
+      configParams.assetToken
+    );
 
     // Register Child in registry
     qwRegistry.registerChild(address(qwAaveV2));

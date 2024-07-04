@@ -15,15 +15,16 @@ contract AaveIntegrationV3 is IntegrationBase {
   function setUp() public virtual override {
     IntegrationBase.setUp();
 
-    _QWAaveV3 = new QWAaveV3(address(_qwManager), address(_aavePool));
+    address investmentToken = address(_usdc); // Adjust this according to your setup
+    address assetToken = address(_aUsdc); // Adjust this according to your setup
+
+    _QWAaveV3 = new QWAaveV3(address(_qwManager), address(_aavePool), investmentToken, assetToken);
     vm.prank(_owner);
     _qwRegistry.registerChild(address(_QWAaveV3));
   }
 
   function test_CreateAaveV3() public {
     uint256 amount = 1e12; // 1 million usdc
-    bytes memory callData = '';
-    address tokenAddress = address(_usdc);
 
     // transfer usdc from user to qwManager contract
     vm.prank(_usdcWhale);
@@ -35,24 +36,13 @@ contract AaveIntegrationV3 is IntegrationBase {
     address[] memory targetQWChild = new address[](1);
     targetQWChild[0] = address(_QWAaveV3);
 
-    bytes[] memory callDataArr = new bytes[](1);
-    callDataArr[0] = callData;
-
     // execute the investment
     vm.prank(_owner);
-    _qwManager.execute(targetQWChild, callDataArr, tokenAddress, amount);
+    _qwManager.open(targetQWChild, amount);
     uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
-    // _aavePool.getUserAccountData(address(_qwManager));
-    // address[] memory assetsArr = new address[](2);
-    // assetsArr[0] = address(_usdc);
-    // assetsArr[1] = address(_aUsdc);
-    // _rewards.getAllUserRewards(assetsArr, address(_qwManager));
-    // vm.roll(block.number + 1_000_000);
-    // _rewards.getUserAccruedRewards(address(_qwManager), assetsArr[1]);
-    // _rewards.getUserAccruedRewards(address(_qwManager), assetsArr[0]);
-    // _rewards.getRewardsList();
+    // Assertions
     assertGe(aUsdcBalanceAfter - aUsdcBalanceBefore, amount);
     assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
     assertEq(usdcBalanceAfter, 0);
@@ -62,8 +52,7 @@ contract AaveIntegrationV3 is IntegrationBase {
     // create investment in aave
     test_CreateAaveV3();
 
-    uint256 amount = _aUsdc.balanceOf(address(_qwManager));
-    bytes memory callData = abi.encode(address(_usdc), address(_aUsdc), amount);
+    uint256 ratio = 1e8; // 100% ratio
 
     uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_qwManager));
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
@@ -72,18 +61,16 @@ contract AaveIntegrationV3 is IntegrationBase {
     address[] memory targetQWChild = new address[](1);
     targetQWChild[0] = address(_QWAaveV3);
 
-    bytes[] memory callDataArr = new bytes[](1);
-    callDataArr[0] = callData;
-
     // close the position
     vm.prank(_owner);
-    _qwManager.close(targetQWChild, callDataArr);
+    _qwManager.close(targetQWChild, ratio);
 
     uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
-    assertGe(usdcBalanceAfter - usdcBalanceBefore, amount);
-    assertEq(aUsdcBalanceBefore - aUsdcBalanceAfter, amount);
+    // Assertions
+    assertGe(usdcBalanceAfter - usdcBalanceBefore, aUsdcBalanceBefore);
+    assertEq(aUsdcBalanceBefore - aUsdcBalanceAfter, aUsdcBalanceBefore);
     assertEq(aUsdcBalanceAfter, 0);
   }
 }

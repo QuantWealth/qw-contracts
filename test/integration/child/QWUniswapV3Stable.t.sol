@@ -46,13 +46,8 @@ contract UniswapV3stableIntegration is IntegrationBase {
 
   function test_CreateUniswapV3Stable() public {
     uint256 amount = 1e10; // 10k usdc
-    bytes memory callData = '';
     address tokenAddress = address(_usdc);
 
-    vm.prank(_usdtWhale);
-    _usdt.transfer(address(_QWUniswapV3Stable), amount);
-
-    // transfer usdc from user to qwManager contract
     vm.prank(_usdcWhale);
     _usdc.transfer(address(_qwManager), amount);
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
@@ -61,12 +56,9 @@ contract UniswapV3stableIntegration is IntegrationBase {
     address[] memory targetQWChild = new address[](1);
     targetQWChild[0] = address(_QWUniswapV3Stable);
 
-    bytes[] memory callDataArr = new bytes[](1);
-    callDataArr[0] = callData;
-
     // execute the investment
     vm.prank(_owner);
-    _qwManager.execute(targetQWChild, callDataArr, tokenAddress, amount);
+    _qwManager.open(targetQWChild, amount);
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
     assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
@@ -77,21 +69,19 @@ contract UniswapV3stableIntegration is IntegrationBase {
     // create investment in uniswap
     test_CreateUniswapV3Stable();
 
-    bytes memory callData = abi.encode(address(_usdc), address(_usdc), 0);
-
+    uint256 ratio = 1e8; // 100%
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
     // Create dynamic arrays with one element each
     address[] memory targetQWChild = new address[](1);
     targetQWChild[0] = address(_QWUniswapV3Stable);
 
-    bytes[] memory callDataArr = new bytes[](1);
-    callDataArr[0] = callData;
-
     // close the position
     vm.prank(_owner);
-    _qwManager.close(targetQWChild, callDataArr);
+    _qwManager.close(targetQWChild, ratio);
 
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
+
+    assertGt(usdcBalanceAfter, usdcBalanceBefore);
   }
 }
