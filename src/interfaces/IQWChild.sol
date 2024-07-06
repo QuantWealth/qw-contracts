@@ -32,5 +32,17 @@ interface IQWChild {
    * @notice Gets the address of the Quant Wealth Manager contract.
    * @return address The address of the Quant Wealth Manager contract recorded in this child contract.
    */
-  function QW_MANAGER() external view returns (address);
+  function getQWManager() external view returns (address);
+
+  /**
+   * @notice Gets the address of the investment token, the token input and output for the contract.
+   * @return address The address of the investment token.
+   */
+  function getInvestmentToken() external view returns (address);
+
+  /**
+   * @notice Gets the address of the asset token, the token that is purchased and sold using the investment token.
+   * @return address The address of the asset token.
+   */
+  function getAssetToken() external view returns (address);
 }
