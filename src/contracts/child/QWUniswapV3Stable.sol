@@ -5,7 +5,8 @@ pragma abicoder v2;
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol';
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
+import {QWComponentBase} from './QWComponentBase.sol';
 
 import 'interfaces/uniswap-v3/INonfungiblePositionManager.sol';
 import 'interfaces/uniswap-v3/ISwapRouter.sol';
@@ -19,26 +20,16 @@ import 'libraries/uniswap-v3/TransferHelper.sol';
  * @title Uniswap V3 Integration for Quant Wealth
  * @notice This contract integrates with Uniswap V3 protocol for Quant Wealth management.
  */
-contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmutableState {
+contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Receiver, PeripheryImmutableState {
     // Variables
-    address public immutable QW_MANAGER;
-    INonfungiblePositionManager public immutable nonfungiblePositionManager;
+    INonfungiblePositionManager public immutable NFT_POSITION_MANAGER;
     IUniswapV3Pool public immutable UNISWAP_POOL;
     uint256 public uniswapPositionTokenId;
     uint128 public liquidityAmount;
     bool public isInitialized;
 
     // Custom errors
-    error InvalidCallData(); // Error for invalid call data
-    error UnauthorizedAccess(); // Error for unauthorized caller
     error Uninitialized(); // Error for not initialized the position
-
-    modifier onlyQwManager() {
-        if (msg.sender != QW_MANAGER) {
-            revert UnauthorizedAccess();
-        }
-        _;
-    }
 
     modifier whenInitialized() {
         if (!isInitialized) {
@@ -50,6 +41,7 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
+     * @param _investmentToken The address of the investment token (e.g., USDC).
      * @param _nonfungiblePositionManager The address of the Uniswap V3 non-fungible position manager contract.
      * @param _factory The address of the Uniswap V3 factory contract.
      * @param _WETH9 The address of the WETH9 contract.
@@ -57,12 +49,16 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
      */
     constructor(
         address _qwManager,
+        address _investmentToken,
         address _nonfungiblePositionManager,
         address _factory,
         address _WETH9,
         address _uniswapPool
-    ) PeripheryImmutableState(_factory, _WETH9) Ownable(msg.sender) {
-        nonfungiblePositionManager = INonfungiblePositionManager(_nonfungiblePositionManager);
+    )
+    PeripheryImmutableState(_factory, _WETH9)
+    Ownable(msg.sender)
+    QWComponentBase(_qwManager, _investmentToken, _nonfungiblePositionManager) {
+        NFT_POSITION_MANAGER = INonfungiblePositionManager(_nonfungiblePositionManager);
         QW_MANAGER = _qwManager;
         UNISWAP_POOL = IUniswapV3Pool(_uniswapPool);
     }
@@ -91,8 +87,8 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
         TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amount1ToMint);
 
         // Approve the position manager
-        TransferHelper.safeApprove(token0, address(nonfungiblePositionManager), amount0ToMint);
-        TransferHelper.safeApprove(token1, address(nonfungiblePositionManager), amount1ToMint);
+        TransferHelper.safeApprove(token0, address(NFT_POSITION_MANAGER), amount0ToMint);
+        TransferHelper.safeApprove(token1, address(NFT_POSITION_MANAGER), amount1ToMint);
 
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: token0,
@@ -108,20 +104,20 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
             deadline: block.timestamp
         });
 
-        (tokenId, liquidity, amount0, amount1) = nonfungiblePositionManager.mint(params);
+        (tokenId, liquidity, amount0, amount1) = NFT_POSITION_MANAGER.mint(params);
 
         uniswapPositionTokenId = tokenId;
         liquidityAmount = liquidity;
 
         // Remove allowance and refund in both assets.
         if (amount0 < amount0ToMint) {
-            TransferHelper.safeApprove(token0, address(nonfungiblePositionManager), 0);
+            TransferHelper.safeApprove(token0, address(NFT_POSITION_MANAGER), 0);
             uint256 refund0 = amount0ToMint - amount0;
             TransferHelper.safeTransfer(token0, msg.sender, refund0);
         }
 
         if (amount1 < amount1ToMint) {
-            TransferHelper.safeApprove(token1, address(nonfungiblePositionManager), 0);
+            TransferHelper.safeApprove(token1, address(NFT_POSITION_MANAGER), 0);
             uint256 refund1 = amount1ToMint - amount1;
             TransferHelper.safeTransfer(token1, msg.sender, refund1);
         }
@@ -188,8 +184,8 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
         address token1 = UNISWAP_POOL.token1();
 
         // Approve the position manager
-        TransferHelper.safeApprove(token0, address(nonfungiblePositionManager), amountAdd);
-        TransferHelper.safeApprove(token1, address(nonfungiblePositionManager), amountAdd);
+        TransferHelper.safeApprove(token0, address(NFT_POSITION_MANAGER), amountAdd);
+        TransferHelper.safeApprove(token1, address(NFT_POSITION_MANAGER), amountAdd);
 
         INonfungiblePositionManager.IncreaseLiquidityParams memory params = INonfungiblePositionManager
             .IncreaseLiquidityParams({
@@ -201,7 +197,7 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
             deadline: block.timestamp
         });
 
-        (liquidity, amount0, amount1) = nonfungiblePositionManager.increaseLiquidity(params);
+        (liquidity, amount0, amount1) = NFT_POSITION_MANAGER.increaseLiquidity(params);
         liquidityAmount = liquidity;
     }
 
@@ -224,7 +220,7 @@ contract QWUniswapV3Stable is IQWChild, Ownable, IERC721Receiver, PeripheryImmut
             deadline: block.timestamp
         });
 
-        (amount0, amount1) = nonfungiblePositionManager.decreaseLiquidity(params);
+        (amount0, amount1) = NFT_POSITION_MANAGER.decreaseLiquidity(params);
     }
 
     function onERC721Received(

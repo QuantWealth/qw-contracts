@@ -2,50 +2,32 @@
 pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
+import {QWComponentBase} from './QWComponentBase.sol';
 import {ILendingPool} from 'interfaces/aave-v2/ILendingPool.sol';
 
 /**
  * @title AaveV2 Integration for Quant Wealth
  * @notice This contract integrates with AaveV2 protocol for Quant Wealth management.
  */
-contract QWAaveV2 is IQWChild {
+contract QWAaveV2 is IQWComponent, QWComponentBase {
     // Variables
-    address public immutable QW_MANAGER;
-    address public immutable INVESTMENT_TOKEN;
-    address public immutable ASSET_TOKEN;
     address public immutable LENDING_POOL;
-
-    // Custom errors
-    error InvalidCallData(); // Error for invalid call data
-    error UnauthorizedAccess(); // Error for unauthorized caller
-    error NoInvestmentTokensReceived();
-    error NoAssetTokensReceived();
-
-    modifier onlyQwManager() {
-        if (msg.sender != QW_MANAGER) {
-            revert UnauthorizedAccess();
-        }
-        _;
-    }
 
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
-     * @param _lendingPool The address of the AaveV2 pool contract.
      * @param _investmentToken The address of the investment token (e.g., USDT).
      * @param _assetToken The address of the corresponding aToken (e.g., aUSDT).
+     * @param _lendingPool The address of the AaveV2 pool contract.
      */
     constructor(
         address _qwManager,
-        address _lendingPool,
         address _investmentToken,
-        address _assetToken
-    ) {
-        QW_MANAGER = _qwManager;
+        address _assetToken,
+        address _lendingPool
+    ) QWComponentBase(_qwManager, _investmentToken, _assetToken) {
         LENDING_POOL = _lendingPool;
-        INVESTMENT_TOKEN = _investmentToken;
-        ASSET_TOKEN = _assetToken;
     }
 
     // Functions

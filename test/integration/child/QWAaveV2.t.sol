@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IntegrationBase} from '../IntegrationBase.t.sol';
 import {IQWManager} from 'interfaces/IQWManager.sol';
-import {IERC20, ILendingPool, IQWChild, QWAaveV2} from 'contracts/child/QWAaveV2.sol';
+import {IERC20, ILendingPool, QWAaveV2} from 'contracts/child/QWAaveV2.sol';
 
 import {IIncentivesController} from 'interfaces/aave-v2/IIncentivesController.sol';
 
@@ -18,7 +18,7 @@ contract AaveIntegrationV2 is IntegrationBase {
 
     _QWAaveV2 = new QWAaveV2(address(_qwManager), address(_aaveLendingPool), address(_usdc), address(_aUsdc));
     vm.prank(_owner);
-    _qwRegistry.registerChild(address(_QWAaveV2));
+    _qwRegistry.registerComponent(address(_QWAaveV2));
   }
 
   function test_OpenAaveV2() public {

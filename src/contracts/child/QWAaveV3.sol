@@ -3,42 +3,31 @@ pragma solidity 0.8.23;
 
 import {IPool} from '@aave/core-v3/contracts/interfaces/IPool.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
+import {QWComponentBase} from './QWComponentBase.sol';
 
 /**
  * @title AaveV3 Integration for Quant Wealth
  * @notice This contract integrates with AaveV3 protocol for Quant Wealth management.
  */
-contract QWAaveV3 is IQWChild {
+contract QWAaveV3 is IQWComponent, QWComponentBase {
     // Variables
-    address public immutable QW_MANAGER;
     address public immutable POOL;
-    address public immutable INVESTMENT_TOKEN;
-    address public immutable ASSET_TOKEN;
-
-    // Custom errors
-    error InvalidCallData(); // Error for invalid call data
-    error UnauthorizedAccess(); // Error for unauthorized caller
-
-    modifier onlyQwManager() {
-        if (msg.sender != QW_MANAGER) {
-            revert UnauthorizedAccess();
-        }
-        _;
-    }
 
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
-     * @param _pool The address of the AaveV3 pool contract.
      * @param _investmentToken The address of the token to be invested.
      * @param _assetToken The address of the asset token received after investment.
+     * @param _pool The address of the AaveV3 pool contract.
      */
-    constructor(address _qwManager, address _pool, address _investmentToken, address _assetToken) {
-        QW_MANAGER = _qwManager;
+    constructor(
+        address _qwManager,
+        address _investmentToken,
+        address _assetToken,
+        address _pool
+    ) QWComponentBase(_qwManager, _investmentToken, _assetToken) {
         POOL = _pool;
-        INVESTMENT_TOKEN = _investmentToken;
-        ASSET_TOKEN = _assetToken;
     }
 
     // Functions

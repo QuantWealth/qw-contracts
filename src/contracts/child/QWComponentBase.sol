@@ -1,14 +1,27 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity 0.8.23;
 
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
 
 // TODO: Inherit and call in constructor of components.
 
-abstract contract QWComponentBase is IQWChild {
+abstract contract QWComponentBase is IQWComponent {
     address public immutable QW_MANAGER;
     address public immutable INVESTMENT_TOKEN;
     address public immutable ASSET_TOKEN;
+
+    // Custom errors
+    error InvalidCallData(); // Error for invalid call data
+    error UnauthorizedAccess(); // Error for unauthorized caller
+    error NoInvestmentTokensReceived();
+    error NoAssetTokensReceived();
+
+    modifier onlyQwManager() {
+        if (msg.sender != QW_MANAGER) {
+            revert UnauthorizedAccess();
+        }
+        _;
+    }
 
     constructor(address _qwManager, address _investmentToken, address _assetToken) {
         QW_MANAGER = _qwManager;

@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
 import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
 
 /**
@@ -16,7 +16,7 @@ contract QWRegistry is IQWRegistry, Ownable {
   mapping(address => bool) public whitelist;
 
   // Events
-  event ChildRegistered(address indexed child);
+  event ComponentRegistered(address indexed component);
 
   // Custom errors
   error ParentMismatch(); // Error for mismatched parent contract
@@ -35,18 +35,18 @@ contract QWRegistry is IQWRegistry, Ownable {
 
   /**
    * @notice Registers a child contract in the whitelist.
-   * @dev This function ensures that the child contract's parent matches the QWManager.
-   * @param _child The address of the child contract to register.
+   * @dev This function ensures that the component contract's parent matches the QWManager.
+   * @param _component The address of the component contract to register.
    */
-  function registerChild(address _child) external onlyOwner {
-    if (_child == address(0)) {
+  function registerComponent(address _component) external onlyOwner {
+    if (_component == address(0)) {
       revert InvalidAddress();
     }
-    IQWChild childContract = IQWChild(_child);
-    if (childContract.QW_MANAGER() != QW_MANAGER) {
+    IQWComponent componentContract = IQWComponent(_component);
+    if (componentContract.getQWManager() != QW_MANAGER) {
       revert ParentMismatch();
     }
-    whitelist[_child] = true;
-    emit ChildRegistered(_child); // Emit an event when a child contract is registered
+    whitelist[_component] = true;
+    emit ComponentRegistered(_component); // Emit an event when a child contract is registered
   }
 }

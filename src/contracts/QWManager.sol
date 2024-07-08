@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {QWRegistry} from './QWRegistry.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
 import {IQWManager} from 'interfaces/IQWManager.sol';
 import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
 
@@ -76,7 +76,7 @@ contract QWManager is IQWManager, Ownable {
             token.approve(address(batch.protocol), batch.amount);
 
             // Call the create function on the target contract with the provided calldata.
-            (bool success, uint256 assetAmountReceived) = IQWChild(batch.protocol).open(batch.amount);
+            (bool success, uint256 assetAmountReceived) = IQWComponent(batch.protocol).open(batch.amount);
             if (!success) {
                 // TODO: Event for batches that fail.
                 revert CallFailed();
@@ -122,7 +122,7 @@ contract QWManager is IQWManager, Ownable {
             IERC20(protocol.assetAddress).transfer(batch.protocol, amountToWithdraw);
 
             // Call the close function on the child contract.
-            (bool success, uint256 tokenAmountReceived) = IQWChild(batch.protocol).close(batch.ratio);
+            (bool success, uint256 tokenAmountReceived) = IQWComponent(batch.protocol).close(batch.ratio);
             if (!success) {
                 revert CallFailed();
             }

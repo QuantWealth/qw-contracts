@@ -3,47 +3,31 @@ pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IComet} from 'interfaces/IComet.sol';
-import {IQWChild} from 'interfaces/IQWChild.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
+import {QWComponentBase} from './QWComponentBase.sol';
 
 /**
  * @title Compound Integration for Quant Wealth
  * @notice This contract integrates with Compound protocol for Quant Wealth management.
  */
-contract QWCompound is IQWChild {
+contract QWCompound is IQWComponent, QWComponentBase {
     // Variables
-    address public immutable QW_MANAGER;
     address public immutable COMET;
-    address public immutable INVESTMENT_TOKEN;
-    address public immutable ASSET_TOKEN;
-
-    // Custom errors
-    error InvalidCallData(); // Error for invalid call data
-    error UnauthorizedAccess(); // Error for unauthorized caller
-
-    modifier onlyQwManager() {
-        if (msg.sender != QW_MANAGER) {
-            revert UnauthorizedAccess();
-        }
-        _;
-    }
 
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
-     * @param _comet The address of the Compound comet contract.
      * @param _investmentToken The address of the investment token (e.g., USDC).
      * @param _assetToken The address of the asset token received from Compound (e.g., cUSDC).
+     * @param _comet The address of the Compound comet contract.
      */
     constructor(
         address _qwManager,
-        address _comet,
         address _investmentToken,
-        address _assetToken
-    ) {
-        QW_MANAGER = _qwManager;
+        address _assetToken,
+        address _comet
+    ) QWComponentBase(_qwManager, _investmentToken, _assetToken) {
         COMET = _comet;
-        INVESTMENT_TOKEN = _investmentToken;
-        ASSET_TOKEN = _assetToken;
     }
 
     // Functions
@@ -90,13 +74,5 @@ contract QWCompound is IQWChild {
 
         tokenAmountReceived = balanceAfter - balanceBefore;
         success = true;
-    }
-
-    /**
-     * @notice Gets the address of the Quant Wealth Manager contract.
-     * @dev Returns the address of the Quant Wealth Manager contract.
-     */
-    function QW_MANAGER() external view override returns (address) {
-        return QW_MANAGER;
     }
 }
