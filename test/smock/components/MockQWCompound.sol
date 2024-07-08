@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.0;
 
-import {IERC20, IPool, IQWChild, QWAaveV3} from '../../../src/contracts/child/QWAaveV3.sol';
+import {IComet, IERC20, IQWChild, QWCompound} from '../../../src/contracts/components/QWCompound.sol';
 import {Test} from 'forge-std/Test.sol';
 
-contract MockQWAaveV3 is QWAaveV3, Test {
-  constructor(address _qwManager, address _pool) QWAaveV3(_qwManager, _pool) {}
+contract MockQWCompound is QWCompound, Test {
+  constructor(address _qwManager, address _comet) QWCompound(_qwManager, _comet) {}
 
   function mock_call_create(bytes memory _callData, address _tokenAddress, uint256 _amount, bool success) public {
     vm.mockCall(

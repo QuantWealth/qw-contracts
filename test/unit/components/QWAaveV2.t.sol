@@ -2,7 +2,7 @@
 pragma solidity 0.8.23;
 
 import {Test} from 'forge-std/Test.sol';
-import {MockQWAaveV2} from 'test/smock/child/MockQWAaveV2.sol';
+import {MockQWAaveV2} from 'test/smock/components/MockQWAaveV2.sol';
 
 contract UnitQWAaveV3Test is Test {
   MockQWAaveV2 public mockQWAaveV2;

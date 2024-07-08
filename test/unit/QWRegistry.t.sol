@@ -8,7 +8,7 @@ import {MockQWManager} from 'test/smock/MockQWManager.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
 
 import {SmockHelper} from 'test/smock/SmockHelper.sol';
-import {MockQWAaveV3} from 'test/smock/child/MockQWAaveV3.sol';
+import {MockQWAaveV3} from 'test/smock/components/MockQWAaveV3.sol';
 
 contract UnitQWRegistryTest is Test, SmockHelper {
   MockQWRegistry public mockQWRegistry;

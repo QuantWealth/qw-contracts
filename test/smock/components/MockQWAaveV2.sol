@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.0;
 
-import {IERC20, ILendingPool, IQWChild, QWAaveV2} from '../../../src/contracts/child/QWAaveV2.sol';
+import {IERC20, ILendingPool, IQWChild, QWAaveV2} from '../../../src/contracts/components/QWAaveV2.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockQWAaveV2 is QWAaveV2, Test {
