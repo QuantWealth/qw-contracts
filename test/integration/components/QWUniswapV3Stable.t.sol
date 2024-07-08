@@ -10,7 +10,7 @@ import {
   IQWChild,
   IUniswapV3Pool,
   QWUniswapV3Stable
-} from 'contracts/child/QWUniswapV3Stable.sol';
+} from 'contracts/components/QWUniswapV3Stable.sol';
 
 contract UniswapV3stableIntegration is IntegrationBase {
   IUniswapV3Pool internal _uniswapUSDCUSDTPool = IUniswapV3Pool(0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf);

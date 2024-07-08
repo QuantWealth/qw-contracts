@@ -3,7 +3,7 @@ pragma solidity 0.8.23;
 
 import {IntegrationBase} from '../IntegrationBase.t.sol';
 import {IQWManager} from 'interfaces/IQWManager.sol';
-import {IERC20, ILendingPool, QWAaveV2} from 'contracts/child/QWAaveV2.sol';
+import {IERC20, ILendingPool, QWAaveV2} from 'contracts/components/QWAaveV2.sol';
 
 import {IIncentivesController} from 'interfaces/aave-v2/IIncentivesController.sol';
 

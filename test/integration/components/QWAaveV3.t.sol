@@ -4,13 +4,14 @@ pragma solidity 0.8.23;
 import {IntegrationBase} from '../IntegrationBase.t.sol';
 
 import {IRewardsController} from '@aave/periphery-v3/contracts/rewards/interfaces/IRewardsController.sol';
-import {IERC20, IPool, IQWChild, QWAaveV3} from 'contracts/child/QWAaveV3.sol';
+import {IERC20, IPool, QWAaveV3} from 'contracts/components/QWAaveV3.sol';
+import {IQWComponent} from 'interfaces/IQWComponent.sol';
 
 contract AaveIntegrationV3 is IntegrationBase {
   IPool internal _aavePool = IPool(0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2);
   IERC20 internal _aUsdc = IERC20(0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c);
   IRewardsController internal _rewards = IRewardsController(0x8164Cc65827dcFe994AB23944CBC90e0aa80bFcb);
-  IQWChild internal _QWAaveV3;
+  IQWComponent internal _QWAaveV3;
 
   function setUp() public virtual override {
     IntegrationBase.setUp();
@@ -20,7 +21,7 @@ contract AaveIntegrationV3 is IntegrationBase {
 
     _QWAaveV3 = new QWAaveV3(address(_qwManager), address(_aavePool), investmentToken, assetToken);
     vm.prank(_owner);
-    _qwRegistry.registerChild(address(_QWAaveV3));
+    _qwRegistry.registerComponent(address(_QWAaveV3));
   }
 
   function test_CreateAaveV3() public {

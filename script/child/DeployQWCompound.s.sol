@@ -5,7 +5,7 @@ import {DeployBase} from '../helpers/DeployBase.sol';
 
 import {QWManager} from 'contracts/QWManager.sol';
 import {QWRegistry} from 'contracts/QWRegistry.sol';
-import {QWCompound} from 'contracts/child/QWCompound.sol';
+import {QWCompound} from 'contracts/components/QWCompound.sol';
 import {Script} from 'forge-std/Script.sol';
 
 /**
