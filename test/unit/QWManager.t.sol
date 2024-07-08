@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity 0.8.23;
 
-import {IERC20, IQWChild, IQWManager, QWManager} from 'contracts/QWManager.sol';
+import {IERC20, IQWComponent, IQWManager, QWManager} from 'contracts/QWManager.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockQWManager} from 'test/smock/MockQWManager.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';

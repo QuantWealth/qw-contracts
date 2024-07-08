@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity ^0.8.0;
 
-import {IQWChild, IQWRegistry, Ownable, QWRegistry} from '../../src/contracts/QWRegistry.sol';
+import {IQWComponent, IQWRegistry, Ownable, QWRegistry} from '../../src/contracts/QWRegistry.sol';
 import {Test} from 'forge-std/Test.sol';
 
 contract MockQWRegistry is QWRegistry, Test {

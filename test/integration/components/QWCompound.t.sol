@@ -2,20 +2,20 @@
 pragma solidity 0.8.23;
 
 import {IntegrationBase} from '../IntegrationBase.t.sol';
-import {IComet, IERC20, IQWChild, QWCompound} from 'contracts/components/QWCompound.sol';
+import {IComet, IERC20, IQWComponent, QWCompound} from 'contracts/components/QWCompound.sol';
 import {Test, console2} from 'forge-std/Test.sol';
 
 contract CompoundIntegration is IntegrationBase {
     IComet internal _compoundV3Comet = IComet(0xc3d688B66703497DAA19211EEdff47f25384cdc3);
     IERC20 internal _cUsdcV3 = IERC20(0xc3d688B66703497DAA19211EEdff47f25384cdc3);
-    IQWChild internal _qwCompound;
+    IQWComponent internal _qwCompound;
 
     function setUp() public virtual override {
         IntegrationBase.setUp();
 
         _qwCompound = new QWCompound(address(_qwManager), address(_compoundV3Comet), address(_usdc), address(_cUsdcV3));
         vm.prank(_owner);
-        _qwRegistry.registerChild(address(_qwCompound));
+        _qwRegistry.registerComponent(address(_qwCompound));
     }
 
     function test_OpenCompound() public {

@@ -7,7 +7,7 @@ import {Test, console2} from 'forge-std/Test.sol';
 import {
   IERC20,
   INonfungiblePositionManager,
-  IQWChild,
+  IQWComponent,
   IUniswapV3Pool,
   QWUniswapV3Stable
 } from 'contracts/components/QWUniswapV3Stable.sol';
@@ -27,7 +27,7 @@ contract UniswapV3stableIntegration is IntegrationBase {
     _QWUniswapV3Stable = new QWUniswapV3Stable(
       address(_qwManager), address(_nonfungiblePositionManager), _factory, _weth, address(_uniswapUSDCUSDTPool)
     );
-    _qwRegistry.registerChild(address(_QWUniswapV3Stable));
+    _qwRegistry.registerComponent(address(_QWUniswapV3Stable));
     vm.stopPrank();
 
     uint256 amount = 1e10; // 10k usdc/usdt

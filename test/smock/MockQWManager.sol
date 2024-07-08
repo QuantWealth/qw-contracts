@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {
-  IERC20, IQWChild, IQWManager, IQWRegistry, Ownable, QWManager, QWRegistry
+  IERC20, IQWComponent, IQWManager, IQWRegistry, Ownable, QWManager, QWRegistry
 } from '../../src/contracts/QWManager.sol';
 import {Test} from 'forge-std/Test.sol';
 

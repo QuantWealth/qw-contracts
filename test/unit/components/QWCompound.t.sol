@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity 0.8.23;
 
-import {IComet, IERC20, IQWChild, QWCompound} from 'contracts/components/QWCompound.sol';
+import {IComet, IERC20, IQWComponent, QWCompound} from 'contracts/components/QWCompound.sol';
 import {Test} from 'forge-std/Test.sol';
 import {MockQWCompound} from 'test/smock/components/MockQWCompound.sol';
 
