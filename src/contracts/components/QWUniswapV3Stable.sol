@@ -64,6 +64,48 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
     }
 
     /**
+     * @notice Executes a transaction on Uniswap V3 pool to deposit tokens.
+     * @dev This function is called by the parent contract to deposit tokens into the Uniswap V3 pool.
+     * @param _amount Amount of tokens to be deposited.
+     * @return success boolean indicating the success of the transaction.
+     * @return assetAmountReceived The amount of assets received from the deposit.
+     */
+    function open(
+        uint256 _amount
+    ) external override onlyQwManager whenInitialized returns (bool success, uint256 assetAmountReceived) {
+        _checkInvestment(_amount);
+
+        uint256 liquidity;
+        uint256 amount0;
+        uint256 amount1;
+        (liquidity, amount0, amount1) = increaseLiquidityCurrentRange(_amount);
+
+        assetAmountReceived = amount0 + amount1;
+        success = true;
+
+        // TODO: Send NFT to QWManager
+    }
+
+    /**
+     * @notice Executes a transaction on Uniswap V3 pool to withdraw tokens.
+     * @dev This function is called by the parent contract to withdraw tokens from the Uniswap V3 pool.
+     * @param _amount Amount of holdings to withdraw.
+     * @return success boolean indicating the success of the transaction.
+     * @return tokenAmountReceived The amount of tokens received from the withdrawal.
+     */
+    function close(
+        uint256 _amount
+    ) external override onlyQwManager whenInitialized returns (bool success, uint256 tokenAmountReceived) {
+        // TODO: Check to ensure amount is present on the NFT position manager
+        // TODO: Check to ensure NFT position manager was transferred
+
+        (uint256 amount0, uint256 amount1) = decreaseLiquidity();
+        tokenAmountReceived = amount0 + amount1;
+        success = true;
+        // TODO: Transfer NFT back to QWManager.
+    }
+
+    /**
      * @notice Calls the mint function defined in periphery, mints the same amount of each token.
      * @param _amount0ToMint The amount of token0 to mint.
      * @param _amount1ToMint The amount of token1 to mint.
@@ -123,49 +165,6 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
         }
 
         isInitialized = true;
-    }
-
-    /**
-     * @notice Executes a transaction on Uniswap V3 pool to deposit tokens.
-     * @dev This function is called by the parent contract to deposit tokens into the Uniswap V3 pool.
-     * @param _amount Amount of tokens to be deposited.
-     * @return success boolean indicating the success of the transaction.
-     * @return assetAmountReceived The amount of assets received from the deposit.
-     */
-    function open(
-        uint256 _amount
-    ) external override onlyQwManager whenInitialized returns (bool success, uint256 assetAmountReceived) {
-        address token0 = UNISWAP_POOL.token0();
-        address token1 = UNISWAP_POOL.token1();
-
-        IERC20 token = IERC20(token0);
-        token.transferFrom(QW_MANAGER, address(this), _amount);
-        uint256 liquidity;
-        uint256 amount0;
-        uint256 amount1;
-        (liquidity, amount0, amount1) = increaseLiquidityCurrentRange(_amount);
-
-        assetAmountReceived = amount0 + amount1;
-        success = true;
-    }
-
-    /**
-     * @notice Executes a transaction on Uniswap V3 pool to withdraw tokens.
-     * @dev This function is called by the parent contract to withdraw tokens from the Uniswap V3 pool.
-     * @param _ratio Percentage of holdings to be withdrawn, with 8 decimal places for precision.
-     * @return success boolean indicating the success of the transaction.
-     * @return tokenAmountReceived The amount of tokens received from the withdrawal.
-     */
-    function close(
-        uint256 _ratio
-    ) external override onlyQwManager whenInitialized returns (bool success, uint256 tokenAmountReceived) {
-        if (_ratio == 0 || _ratio > 1e8) {
-            revert InvalidCallData();
-        }
-
-        (uint256 amount0, uint256 amount1) = decreaseLiquidity();
-        tokenAmountReceived = amount0 + amount1;
-        success = true;
     }
 
     /**

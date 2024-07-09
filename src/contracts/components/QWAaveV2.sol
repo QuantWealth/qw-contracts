@@ -43,9 +43,7 @@ contract QWAaveV2 is IQWComponent, QWComponentBase {
         // IERC20 token = IERC20(INVESTMENT_TOKEN);
         // token.transferFrom(QW_MANAGER, address(this), _amount);
         // Check whether we have been transferred the tokens to spend.
-        if (IERC20(INVESTMENT_TOKEN).balanceOf(address(this)) == 0) {
-            revert NoInvestmentTokensReceived();
-        }
+        _checkInvestment(_amount);
 
         // Approve the Aave lending pool to spend the tokens.
         IERC20(INVESTMENT_TOKEN).approve(LENDING_POOL, _amount);
@@ -54,12 +52,8 @@ contract QWAaveV2 is IQWComponent, QWComponentBase {
         ILendingPool(LENDING_POOL).deposit(INVESTMENT_TOKEN, _amount, address(this), 0);
 
         // Get the balance of aTokens, which will reflect the principle investment(s) + interest.
-        assetAmountReceived = IERC20(ASSET_TOKEN).balanceOf(address(this));
-
         // Check to ensure we have received the target asset.
-        if (assetAmountReceived == 0) {
-            revert NoAssetTokensReceived();
-        }
+        assetAmountReceived = _checkAssetsAny();
 
         // Transfer assets to QWManager.
         IERC20(ASSET_TOKEN).transfer(QW_MANAGER, assetAmountReceived);
@@ -75,18 +69,13 @@ contract QWAaveV2 is IQWComponent, QWComponentBase {
      * @return tokenAmountReceived Number of tokens to be returned to the user in exchange for the withdrawn ratio.
      */
     function close(uint256 _amount) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
-        if (IERC20(ASSET_TOKEN).balanceOf(address(this)) == 0) {
-            revert NoAssetTokensReceived();
-        }
+        _checkAssets(_amount);
 
         // Withdraw the tokens from Aave.
         ILendingPool(LENDING_POOL).withdraw(INVESTMENT_TOKEN, _amount, address(this));
 
-        // Check the balance of the investment token received.
-        tokenAmountReceived = IERC20(INVESTMENT_TOKEN).balanceOf(address(this));
-        if (tokenAmountReceived == 0) {
-            revert NoInvestmentTokensReceived();
-        }
+        // Check the balance of the investment token received.        
+        tokenAmountReceived = _checkInvestmentAny();
 
         // Transfer tokens to QWManager.
         IERC20(INVESTMENT_TOKEN).transfer(QW_MANAGER, tokenAmountReceived);

@@ -41,38 +41,37 @@ contract QWCompound is IQWComponent, QWComponentBase {
     function open(
         uint256 _amount
     ) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
-        IERC20 token = IERC20(INVESTMENT_TOKEN);
-        token.transferFrom(QW_MANAGER, address(this), _amount);
+        _checkInvestment(_amount);
+
         token.approve(COMET, _amount);
 
-        // Perform the supply to Compound and get the current balance before and after to calculate the received amount
-        uint256 balanceBefore = IERC20(ASSET_TOKEN).balanceOf(address(this));
+        // Perform the supply to Compound.
         IComet(COMET).supplyTo(address(this), INVESTMENT_TOKEN, _amount);
-        uint256 balanceAfter = IERC20(ASSET_TOKEN).balanceOf(address(this));
 
-        assetAmountReceived = balanceAfter - balanceBefore;
+        assetAmountReceived = _checkAssetsAny();
         success = true;
+
+        // TODO: Transfer tokens to QWManager
     }
 
     /**
      * @notice Executes a transaction on Compound comet to withdraw tokens.
      * @dev This function is called by the parent contract to withdraw tokens from the Compound comet.
-     * @param _ratio Percentage of holdings to be withdrawn, with 8 decimal places for precision.
+     * @param _amount Amount of asset tokens to withdraw.
      * @return success boolean indicating the success of the transaction.
      * @return tokenAmountReceived The amount of tokens received from the withdrawal.
      */
     function close(
-        uint256 _ratio
+        uint256 _amount
     ) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
-        uint256 totalHoldings = IERC20(ASSET_TOKEN).balanceOf(address(this));
-        uint256 amountToWithdraw = (totalHoldings * _ratio) / 1e8;
+        _checkAssets(_amount);
 
-        // Perform the withdraw from Compound and get the current balance before and after to calculate the received amount
-        uint256 balanceBefore = IERC20(INVESTMENT_TOKEN).balanceOf(address(this));
+        // Perform the withdraw from Compound.
         IComet(COMET).withdrawTo(address(this), INVESTMENT_TOKEN, amountToWithdraw);
-        uint256 balanceAfter = IERC20(INVESTMENT_TOKEN).balanceOf(address(this));
 
-        tokenAmountReceived = balanceAfter - balanceBefore;
+        tokenAmountReceived = _checkInvestmentAny();
         success = true;
+
+        // TODO: transfer tokens to QWManager
     }
 }

@@ -39,12 +39,12 @@ contract QWAaveV3 is IQWComponent, QWComponentBase {
      * @return assetAmountReceived Amount of assets received from the deposit.
      */
     function open(uint256 _amount) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
-        IERC20 token = IERC20(INVESTMENT_TOKEN);
-        token.transferFrom(QW_MANAGER, address(this), _amount);
-        token.approve(POOL, _amount);
+        _checkInvestment(_amount);
 
+        token.approve(POOL, _amount);
         IPool(POOL).supply(INVESTMENT_TOKEN, _amount, address(this), 0);
-        assetAmountReceived = IERC20(ASSET_TOKEN).balanceOf(address(this));
+
+        assetAmountReceived = _checkAssetsAny();
 
         // TODO: Transfer tokens to QWManager
 
@@ -54,16 +54,16 @@ contract QWAaveV3 is IQWComponent, QWComponentBase {
     /**
      * @notice Executes a transaction on AaveV3 pool to withdraw tokens.
      * @dev This function is called by the parent contract to withdraw tokens from the AaveV3 pool.
-     * @param _ratio Percentage of holdings to be withdrawn, with 8 decimal places for precision.
+     * @param _amount Amount to withdraw.
      * @return success boolean indicating the success of the transaction.
      * @return tokenAmountReceived Amount of tokens received from the withdrawal.
      */
-    function close(uint256 _ratio) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
-        uint256 totalHoldings = IERC20(ASSET_TOKEN).balanceOf(address(this));
-        uint256 amountToWithdraw = (totalHoldings * _ratio) / 1e8;
+    function close(uint256 _amount) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
+        _checkAssets(_amount);
 
         IPool(POOL).withdraw(INVESTMENT_TOKEN, amountToWithdraw, QW_MANAGER);
-        tokenAmountReceived = amountToWithdraw;
+
+        tokenAmountReceived = _checkInvestmentAny();
 
         success = true;
     }
