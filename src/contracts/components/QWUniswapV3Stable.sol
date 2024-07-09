@@ -74,13 +74,13 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
         uint256 _amount
     ) external override onlyQwManager whenInitialized returns (bool success, uint256 assetAmountReceived) {
         _checkInvestment(_amount);
+        // TODO: Check to ensure NFT position manager was transferred
+        // TODO: INVESMENT_TOKEN needs to be swapped for token0, token1 as needed, and updated amount for each
+        // passed into increaseLiquidityCurrentRange
 
-        uint256 liquidity;
-        uint256 amount0;
-        uint256 amount1;
-        (liquidity, amount0, amount1) = increaseLiquidityCurrentRange(_amount);
+        (uint256 liquidity, uint256 amount0, uint256 amount1) = increaseLiquidityCurrentRange(_amount);
 
-        assetAmountReceived = amount0 + amount1;
+        assetAmountReceived = uint256(liquidity);
 
         // TODO: Send NFT to QWManager
 
@@ -100,10 +100,13 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
         // TODO: Check to ensure amount is present on the NFT position manager
         // TODO: Check to ensure NFT position manager was transferred
 
-        (uint256 amount0, uint256 amount1) = decreaseLiquidity();
+        (uint256 amount0, uint256 amount1) = decreaseLiquidity(); // TODO: decreaseLiquidity should take _amount
         tokenAmountReceived = amount0 + amount1;
+        // TODO: This is incorrect! We should check to see if token0 or token1 are already INVESMENT_TOKEN, if either
+        // are not the INVESMENT_TOKEN, swap them for the INVESMENT_TOKEN using a swap router
 
         // TODO: Transfer NFT back to QWManager.
+        // TODO: Transfer tokens back to QWManager.
 
         success = true;
     }

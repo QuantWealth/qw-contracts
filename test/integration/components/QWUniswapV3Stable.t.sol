@@ -17,15 +17,18 @@ contract UniswapV3stableIntegration is IntegrationBase {
   INonfungiblePositionManager internal _nonfungiblePositionManager =
     INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
   QWUniswapV3Stable internal _QWUniswapV3Stable;
+  address internal investmentToken;
 
   function setUp() public virtual override {
     IntegrationBase.setUp();
+
+    investmentToken = address(0x123);
 
     address _factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
     address _weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     vm.startPrank(_owner);
     _QWUniswapV3Stable = new QWUniswapV3Stable(
-      address(_qwManager), address(_nonfungiblePositionManager), _factory, _weth, address(_uniswapUSDCUSDTPool)
+      address(_qwManager), investmentToken, address(_nonfungiblePositionManager), _factory, _weth, address(_uniswapUSDCUSDTPool)
     );
     _qwRegistry.registerComponent(address(_QWUniswapV3Stable));
     vm.stopPrank();
