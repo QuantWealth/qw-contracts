@@ -9,37 +9,44 @@ contract UnitQWAaveV3Test is Test {
   MockQWCompound public mockQWCompund;
   address public qwManager;
   address public comet;
+  address public investmentToken;
+  address public assetToken;
 
   function setUp() public {
     qwManager = address(0x123);
     investmentToken = address(0x789);
-    assetToken = 
+    assetToken = address(0x777); // TODO: Should the asset token be the comet?
     comet = address(0x456);
-    mockQWCompund = new MockQWCompound(qwManager, comet);
+    mockQWCompund = new MockQWCompound(qwManager, investmentToken, assetToken, comet);
   }
 
-  function test_Open_Success() public {
-    bytes memory callData = '';
-    address tokenAddress = address(0x789);
+  function test_open_success() public {
     uint256 amount = 100;
 
     // Mock a successful call to IPool.supply
-    mockQWCompund.mock_call_create(callData, tokenAddress, amount, true);
+    mockQWCompund.mock_call_open(amount, true);
 
     // Call the create function
-    bool success = mockQWCompund.open(callData, tokenAddress, amount);
+    (bool success, uint256 assetAmountReceived) = mockQWCompund.open(amount);
+
+    // TODO: check asset amount received, ensure QWManager received assets
 
     assertTrue(success, 'Create function should return true on success');
   }
 
-  function test_Close_Success() public {
-    bytes memory callData = abi.encode(address(0x123), uint256(100));
+  function test_close_success() public {
+    // TODO: Do we need to mint/supply this amount of asset tokens to QWManager first?
+    uint256 amount = 100;
+
+    // TODO: Transfer asset tokens to QWCompound.
 
     // Mock a successful call to IPool.withdraw
-    mockQWCompund.mock_call_close(callData, true);
+    mockQWCompund.mock_call_close(amount, true);
 
     // Call the close function
-    bool success = mockQWCompund.close(callData);
+    (bool success, uint256 tokenAmountReceived) = mockQWCompund.close(amount);
+
+    // TODO: check asset amount received, ensure QWManager received assets
 
     assertTrue(success, 'Close function should return true on success');
   }

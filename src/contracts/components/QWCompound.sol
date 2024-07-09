@@ -43,7 +43,7 @@ contract QWCompound is IQWComponent, QWComponentBase {
     ) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
         _checkInvestment(_amount);
 
-        token.approve(COMET, _amount);
+        IERC20(INVESTMENT_TOKEN).approve(COMET, _amount);
 
         // Perform the supply to Compound.
         IComet(COMET).supplyTo(address(this), INVESTMENT_TOKEN, _amount);
@@ -67,7 +67,7 @@ contract QWCompound is IQWComponent, QWComponentBase {
         _checkAssets(_amount);
 
         // Perform the withdraw from Compound.
-        IComet(COMET).withdrawTo(address(this), INVESTMENT_TOKEN, amountToWithdraw);
+        IComet(COMET).withdrawTo(address(this), INVESTMENT_TOKEN, _amount);
 
         tokenAmountReceived = _checkInvestmentAny();
         success = true;

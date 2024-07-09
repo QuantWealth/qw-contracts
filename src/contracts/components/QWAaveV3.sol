@@ -41,7 +41,7 @@ contract QWAaveV3 is IQWComponent, QWComponentBase {
     function open(uint256 _amount) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
         _checkInvestment(_amount);
 
-        token.approve(POOL, _amount);
+        IERC20(INVESTMENT_TOKEN).approve(POOL, _amount);
         IPool(POOL).supply(INVESTMENT_TOKEN, _amount, address(this), 0);
 
         assetAmountReceived = _checkAssetsAny();
@@ -61,7 +61,7 @@ contract QWAaveV3 is IQWComponent, QWComponentBase {
     function close(uint256 _amount) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
         _checkAssets(_amount);
 
-        IPool(POOL).withdraw(INVESTMENT_TOKEN, amountToWithdraw, QW_MANAGER);
+        IPool(POOL).withdraw(INVESTMENT_TOKEN, _amount, QW_MANAGER);
 
         tokenAmountReceived = _checkInvestmentAny();
 

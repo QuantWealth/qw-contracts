@@ -5,6 +5,8 @@ import {IQWComponent, IQWRegistry, Ownable, QWRegistry} from '../../src/contract
 import {Test} from 'forge-std/Test.sol';
 
 contract MockQWRegistry is QWRegistry, Test {
+  constructor(address _qwManager) QWRegistry(_qwManager, msg.sender) {}
+
   function set_whitelist(address _key0, bool _value) public {
     whitelist[_key0] = _value;
   }
@@ -13,9 +15,7 @@ contract MockQWRegistry is QWRegistry, Test {
     vm.mockCall(address(this), abi.encodeWithSignature('whitelist(address)', _key0), abi.encode(_value));
   }
 
-  constructor(address _qwManager) QWRegistry(_qwManager, msg.sender) {}
-
-  function mock_call_registerChild(address _child) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('registerChild(address)', _child), abi.encode());
+  function mock_call_registerComponent(address _child) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('registerComponent(address)', _child), abi.encode());
   }
 }

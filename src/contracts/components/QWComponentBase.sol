@@ -54,10 +54,12 @@ abstract contract QWComponentBase is IQWComponent {
     /**
      * @notice Checks whether we've received the proper amount of investment tokens.
      */
-    function _checkInvestment(uint256 _expectedAmount) internal view {
-        if (IERC20(INVESTMENT_TOKEN).balanceOf(address(this)) != _expectedAmount) {
+    function _checkInvestment(uint256 _expectedAmount) internal view returns (uint256) {
+        uint256 balance = IERC20(INVESTMENT_TOKEN).balanceOf(address(this));
+        if (balance != _expectedAmount) {
             revert IncorrectInvestmentTokensReceived(balance);
         }
+        return balance;
     }
 
     /**
@@ -68,7 +70,7 @@ abstract contract QWComponentBase is IQWComponent {
         if (balance == 0) {
             revert IncorrectInvestmentTokensReceived(balance);
         }
-        return balance
+        return balance;
     }
 
     /**

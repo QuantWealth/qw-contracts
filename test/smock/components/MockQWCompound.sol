@@ -12,15 +12,15 @@ contract MockQWCompound is QWCompound, Test {
     address _comet
   ) QWCompound(_qwManager, _investmentToken, _assetToken, _comet) {}
 
-  function mock_call_create(bytes memory _callData, address _tokenAddress, uint256 _amount, bool success) public {
+  function mock_call_open(uint256 _amount, bool success) public {
     vm.mockCall(
       address(this),
-      abi.encodeWithSignature('create(bytes,address,uint256)', _callData, _tokenAddress, _amount),
+      abi.encodeWithSignature('open(uint256)', _amount),
       abi.encode(success)
     );
   }
 
-  function mock_call_close(bytes memory _callData, bool success) public {
-    vm.mockCall(address(this), abi.encodeWithSignature('close(bytes)', _callData), abi.encode(success));
+  function mock_call_close(uint256 _amount, bool success) public {
+    vm.mockCall(address(this), abi.encodeWithSignature('close(uint256)', _amount), abi.encode(success));
   }
 }

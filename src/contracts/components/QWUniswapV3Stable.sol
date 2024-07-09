@@ -81,9 +81,10 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
         (liquidity, amount0, amount1) = increaseLiquidityCurrentRange(_amount);
 
         assetAmountReceived = amount0 + amount1;
-        success = true;
 
         // TODO: Send NFT to QWManager
+
+        success = true;
     }
 
     /**
@@ -101,8 +102,10 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
 
         (uint256 amount0, uint256 amount1) = decreaseLiquidity();
         tokenAmountReceived = amount0 + amount1;
-        success = true;
+
         // TODO: Transfer NFT back to QWManager.
+
+        success = true;
     }
 
     /**

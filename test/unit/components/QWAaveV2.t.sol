@@ -15,28 +15,32 @@ contract UnitQWAaveV3Test is Test {
     mockQWAaveV2 = new MockQWAaveV2(qwManager, lendingPool);
   }
 
-  function test_Create_Success() public {
+  function test_open_success() public {
     bytes memory callData = '';
     address tokenAddress = address(0x789);
     uint256 amount = 100;
 
     // Mock a successful call to IPool.supply
-    mockQWAaveV2.mock_call_create(callData, tokenAddress, amount, true);
+    mockQWAaveV2.mock_call_open(amount, true);
 
     // Call the create function
-    bool success = mockQWAaveV2.create(callData, tokenAddress, amount);
+    (bool success, uint256 assetAmountReceived) = mockQWAaveV2.open(amount);
+
+    // TODO: check asset amount received, ensure QWManager received assets
 
     assertTrue(success, 'Create function should return true on success');
   }
 
-  function test_Close_Success() public {
-    bytes memory callData = abi.encode(address(0x123), uint256(100));
+  function test_close_success() public {
+    uint256 amount = 100;
 
     // Mock a successful call to IPool.withdraw
-    mockQWAaveV2.mock_call_close(callData, true);
+    mockQWAaveV2.mock_call_close(amount, true);
 
     // Call the close function
-    bool success = mockQWAaveV2.close(callData);
+    (bool success, uint256 tokenAmountReceived) = mockQWAaveV2.close(amount);
+
+    // TODO: Check token amount received, ensure QWManager received it
 
     assertTrue(success, 'Close function should return true on success');
   }

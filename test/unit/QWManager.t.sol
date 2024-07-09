@@ -12,22 +12,24 @@ contract UnitQWManagerTest is Test, SmockHelper {
   MockQWManager public mockQWManager;
   MockQWAaveV3 public mockQWAaveV3;
   MockQWRegistry public mockQWRegistry;
-  address public tokenAddress;
+  address public investmentToken;
+  address public assetToken;
   uint256 public amount;
 
   function setUp() public {
-    mockQWRegistry = new MockQWRegistry();
-    mockQWManager = MockQWManager(deployMock('QWManager', type(MockQWManager).creationCode, abi.encode(address(mockQWRegistry))));
-    mockQWAaveV3 = new MockQWAaveV3(address(mockQWManager), address(0x456));
-    
-    tokenAddress = address(0x123);
+    investmentToken = address(0x123);
+    assetToken = address(0x456);
     amount = 100;
 
+    mockQWRegistry = new MockQWRegistry();
+    mockQWManager = MockQWManager(deployMock('QWManager', type(MockQWManager).creationCode, abi.encode(address(mockQWRegistry))));
+    mockQWAaveV3 = new MockQWAaveV3(address(mockQWManager), investmentToken, assetToken, address(0x789));
+
     // Whitelist the mock protocol
-    mockQWRegistry.addToWhitelist(address(mockQWAaveV3));
+    mockQWRegistry.whitelist(address(mockQWAaveV3));
   }
 
-  function test_Open_Success() public {
+  function test_open_success() public {
     IQWManager.OpenBatch[] memory batches = new IQWManager.OpenBatch[](1);
     batches[0] = IQWManager.OpenBatch({
         protocol: address(mockQWAaveV3),
@@ -41,7 +43,7 @@ contract UnitQWManagerTest is Test, SmockHelper {
     mockQWManager.open(batches);
   }
 
-  function test_Open_Fail_NotWhitelisted() public {
+  function test_open_fail_NotWhitelisted() public {
     IQWManager.OpenBatch[] memory batches = new IQWManager.OpenBatch[](1);
     batches[0] = IQWManager.OpenBatch({
         protocol: address(0x111), // not whitelisted
@@ -49,11 +51,11 @@ contract UnitQWManagerTest is Test, SmockHelper {
     });
 
     // Expect revert due to contract not whitelisted
-    vm.expectRevert("ContractNotWhitelisted");
+    vm.expectRevert('ContractNotWhitelisted');
     mockQWManager.open(batches);
   }
 
-  function test_Open_Fail_CallFailed() public {
+  function test_open_fail_CallFailed() public {
     IQWManager.OpenBatch[] memory batches = new IQWManager.OpenBatch[](1);
     batches[0] = IQWManager.OpenBatch({
         protocol: address(mockQWAaveV3),
@@ -64,11 +66,11 @@ contract UnitQWManagerTest is Test, SmockHelper {
     mockQWManager.mock_call_open_fails(batches);
 
     // Expect revert due to call failed
-    vm.expectRevert("CallFailed");
+    vm.expectRevert('CallFailed');
     mockQWManager.open(batches);
   }
 
-  function test_Close_Success() public {
+  function test_close_success() public {
     IQWManager.CloseBatch[] memory batches = new IQWManager.CloseBatch[](1);
     batches[0] = IQWManager.CloseBatch({
         protocol: address(mockQWAaveV3),
@@ -82,7 +84,7 @@ contract UnitQWManagerTest is Test, SmockHelper {
     mockQWManager.close(batches);
   }
 
-  function test_Close_Fail_CallFailed() public {
+  function test_close_fail_CallFailed() public {
     IQWManager.CloseBatch[] memory batches = new IQWManager.CloseBatch[](1);
     batches[0] = IQWManager.CloseBatch({
         protocol: address(mockQWAaveV3),
@@ -93,53 +95,53 @@ contract UnitQWManagerTest is Test, SmockHelper {
     mockQWManager.mock_call_close_fails(batches);
 
     // Expect revert due to call failed
-    vm.expectRevert("CallFailed");
+    vm.expectRevert('CallFailed');
     mockQWManager.close(batches);
   }
 
-  function test_Withdraw_Success() public {
+  function test_withdraw_success() public {
     address user = address(0x789);
     uint256 withdrawAmount = 50;
 
     // Mock a successful withdrawal
-    mockQWManager.mock_call_withdraw(user, tokenAddress, withdrawAmount);
+    mockQWManager.mock_call_withdraw(user, investmentToken, withdrawAmount);
 
     // Call the withdraw function
-    mockQWManager.withdraw(user, tokenAddress, withdrawAmount);
+    mockQWManager.withdraw(user, investmentToken, withdrawAmount);
   }
 
-  function test_Withdraw_Fail() public {
+  function test_withdraw_fail_TransferFailed() public {
     address user = address(0x789);
     uint256 withdrawAmount = 50;
 
     // Mock a failed withdrawal
-    mockQWManager.mock_call_withdraw_fails(user, tokenAddress, withdrawAmount);
+    mockQWManager.mock_call_withdraw_fails(user, investmentToken, withdrawAmount);
 
     // Expect revert due to transfer failed
-    vm.expectRevert("TransferFailed");
-    mockQWManager.withdraw(user, tokenAddress, withdrawAmount);
+    vm.expectRevert('TransferFailed');
+    mockQWManager.withdraw(user, investmentToken, withdrawAmount);
   }
 
-  function test_ReceiveFunds_Success() public {
+  function test_receiveFunds_success() public {
     address user = address(0x789);
     uint256 receiveAmount = 50;
 
     // Mock a successful receive funds
-    mockQWManager.mock_call_receiveFunds(user, tokenAddress, receiveAmount);
+    mockQWManager.mock_call_receiveFunds(user, investmentToken, receiveAmount);
 
     // Call the receiveFunds function
-    mockQWManager.receiveFunds(user, tokenAddress, receiveAmount);
+    mockQWManager.receiveFunds(user, investmentToken, receiveAmount);
   }
 
-  function test_ReceiveFunds_Fail() public {
+  function test_receiveFunds_fail_TransferFromFailed() public {
     address user = address(0x789);
     uint256 receiveAmount = 50;
 
     // Mock a failed receive funds
-    mockQWManager.mock_call_receiveFunds_fails(user, tokenAddress, receiveAmount);
+    mockQWManager.mock_call_receiveFunds_fails(user, investmentToken, receiveAmount);
 
     // Expect revert due to transferFrom failed
-    vm.expectRevert("TransferFromFailed");
-    mockQWManager.receiveFunds(user, tokenAddress, receiveAmount);
+    vm.expectRevert('TransferFromFailed');
+    mockQWManager.receiveFunds(user, investmentToken, receiveAmount);
   }
 }
