@@ -12,11 +12,13 @@ contract UnitQWAaveV3Test is Test {
 
   function setUp() public {
     qwManager = address(0x123);
+    investmentToken = address(0x789);
+    assetToken = 
     comet = address(0x456);
     mockQWCompund = new MockQWCompound(qwManager, comet);
   }
 
-  function test_Create_Success() public {
+  function test_Open_Success() public {
     bytes memory callData = '';
     address tokenAddress = address(0x789);
     uint256 amount = 100;
@@ -25,7 +27,7 @@ contract UnitQWAaveV3Test is Test {
     mockQWCompund.mock_call_create(callData, tokenAddress, amount, true);
 
     // Call the create function
-    bool success = mockQWCompund.create(callData, tokenAddress, amount);
+    bool success = mockQWCompund.open(callData, tokenAddress, amount);
 
     assertTrue(success, 'Create function should return true on success');
   }

@@ -15,6 +15,8 @@ import {Script} from 'forge-std/Script.sol';
 contract DeployQWCompound is Script, DeployBase {
   struct ConfigParams {
     address compoundComet;
+    address investmentToken;
+    address assetToken;
   }
 
   QWCompound public qwCompound;
@@ -36,10 +38,15 @@ contract DeployQWCompound is Script, DeployBase {
     qwRegistry = QWRegistry(registryAddr);
 
     // Deploy QwChild
-    qwCompound = new QWCompound(baseParams.qwManager, configParams.compoundComet);
+    qwCompound = new QWCompound(
+      baseParams.qwManager,
+      configParams.investmentToken,
+      configParams.assetToken,
+      configParams.compoundComet
+    );
 
     // Register Child in registry
-    qwRegistry.registerChild(address(qwCompound));
+    qwRegistry.registerComponent(address(qwCompound));
 
     vm.stopBroadcast();
   }

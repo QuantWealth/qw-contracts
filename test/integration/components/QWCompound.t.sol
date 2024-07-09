@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IntegrationBase} from '../IntegrationBase.t.sol';
 import {IComet, IERC20, IQWComponent, QWCompound} from 'contracts/components/QWCompound.sol';
+import {IQWManager} from 'interfaces/IQWManager.sol';
 import {Test, console2} from 'forge-std/Test.sol';
 
 contract CompoundIntegration is IntegrationBase {

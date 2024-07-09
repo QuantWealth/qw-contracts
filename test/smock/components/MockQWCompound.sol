@@ -5,7 +5,12 @@ import {IComet, IERC20, IQWComponent, QWCompound} from '../../../src/contracts/c
 import {Test} from 'forge-std/Test.sol';
 
 contract MockQWCompound is QWCompound, Test {
-  constructor(address _qwManager, address _comet) QWCompound(_qwManager, _comet) {}
+  constructor(
+    address _qwManager,
+    address _investmentToken,
+    address _assetToken,
+    address _comet
+  ) QWCompound(_qwManager, _investmentToken, _assetToken, _comet) {}
 
   function mock_call_create(bytes memory _callData, address _tokenAddress, uint256 _amount, bool success) public {
     vm.mockCall(

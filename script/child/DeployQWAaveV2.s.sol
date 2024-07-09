@@ -40,13 +40,13 @@ contract DeployQWAaveV2 is Script, DeployBase {
     // Deploy QwChild
     qwAaveV2 = new QWAaveV2(
       baseParams.qwManager,
-      configParams.aaveLendingPool,
       configParams.investmentToken,
-      configParams.assetToken
+      configParams.assetToken,
+      configParams.aaveLendingPool
     );
 
     // Register Child in registry
-    qwRegistry.registerChild(address(qwAaveV2));
+    qwRegistry.registerComponent(address(qwAaveV2));
 
     vm.stopBroadcast();
   }

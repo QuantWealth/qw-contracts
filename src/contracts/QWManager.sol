@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {QWRegistry} from './QWRegistry.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {IQWComponent} from 'interfaces/IQWComponent.sol';
 import {IQWManager} from 'interfaces/IQWManager.sol';
 import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
@@ -13,10 +14,14 @@ import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
  * @notice This contract manages the execution, closing, and withdrawal of various strategies for Quant Wealth.
  */
 contract QWManager is IQWManager, Ownable {
+    enum ProtocolClassification { NONE, POSITION_MANAGER }
+
     struct Protocol {
+        ProtocolClassification classification;
         address assetAddress;
         uint256 assetAmount;
         address investmentToken;
+        uint256 nftId;
     }
 
     // Variables
@@ -75,6 +80,12 @@ contract QWManager is IQWManager, Ownable {
             IERC20 token = IERC20(protocol.investmentToken);
             token.approve(address(batch.protocol), batch.amount);
 
+            // Transfer relevant NFT position manager, if applicable.
+            if (protocol.classification == ProtocolClassification.POSITION_MANAGER) {
+                IERC721 nft = IERC721(protocol.assetAddress);
+                nft.transferFrom(address(this), batch.protocol, protocol.nftId);
+            }
+
             // Call the create function on the target contract with the provided calldata.
             (bool success, uint256 assetAmountReceived) = IQWComponent(batch.protocol).open(batch.amount);
             if (!success) {
@@ -118,8 +129,14 @@ contract QWManager is IQWManager, Ownable {
             protocol.assetAmount -= amountToWithdraw;
             protocols[batch.protocol] = protocol;
 
-            // Transfer tokens to the child contract.
-            IERC20(protocol.assetAddress).transfer(batch.protocol, amountToWithdraw);
+            if (protocol.classification == ProtocolClassification.POSITION_MANAGER) {
+                // Transfer relevant NFT position manager, if applicable.
+                IERC721 nft = IERC721(protocol.assetAddress);
+                nft.transferFrom(address(this), batch.protocol, protocol.nftId);
+            } else {
+                // Transfer tokens to the child contract.
+                IERC20(protocol.assetAddress).transfer(batch.protocol, amountToWithdraw);
+            }
 
             // Call the close function on the child contract.
             (bool success, uint256 tokenAmountReceived) = IQWComponent(batch.protocol).close(batch.ratio);
