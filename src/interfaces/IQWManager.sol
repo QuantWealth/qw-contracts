@@ -29,38 +29,38 @@ interface IQWManager {
    */
   function withdraw(address _user, address _tokenAddress, uint256 _amount) external;
 
-  /**
-   * @notice Receive funds from a specified user.
-   * Transfers a specified amount of funds from the user to this contract.
-   * @param _user The address of the user sending the funds.
-   * @param _tokenAddress The address of the token to transfer.
-   * @param _amount The amount of funds to transfer to this contract.
-   */
-  function receiveFunds(address _user, address _tokenAddress, uint256 _amount) external;
+    /**
+     * @notice Receive funds from a specified user.
+     * Transfers a specified amount of funds from the user to this contract.
+     * @param _user The address of the user sending the funds.
+     * @param _tokenAddress The address of the token to transfer.
+     * @param _amount The amount of funds to transfer to this contract.
+     */
+    function receiveFunds(address _user, address _tokenAddress, uint256 _amount) external;
 
-  /**
-   * @notice Get the address of the Quant Wealth Registry.
-   * @return The address of the registry contract.
-   */
-  function REGISTRY() external view returns (address);
+    /**
+     * @notice Get the address of the Quant Wealth Registry.
+     * @return The address of the registry contract.
+     */
+    function REGISTRY() external view returns (address);
 
-  /**
-   * @notice OpenBatch struct to hold batch data for executing investments.
-   * @param protocol The protocol into which we are investing funds.
-   * @param amount The total amount being invested in the given token by all users into this protocol.
-   */
-  struct OpenBatch {
-      address protocol;
-      uint256 amount;
-  }
+    /**
+     * @notice OpenBatch struct to hold batch data for executing investments.
+     * @param protocol The protocol into which we are investing funds.
+     * @param amount The total amount being invested in the given token by all users into this protocol.
+    */
+    struct OpenBatch {
+        address protocol;
+        uint256 amount;
+    }
 
-  /**
-   * @notice CloseBatch struct to hold batch data for closing investments.
-   * @param protocol The protocol from which we are withdrawing funds.
-   * @param ratio The percentage amount of holdings to withdraw from the given protocol.
-   */
-  struct CloseBatch {
-      address protocol;
-      uint256 ratio;
-  }
+    /**
+     * @notice CloseBatch struct to hold batch data for closing investments.
+     * @param protocol The protocol from which we are withdrawing funds.
+     * @param ratio The percentage amount of holdings to withdraw from the given protocol.
+     */
+    struct CloseBatch {
+        address protocol;
+        uint256 ratio;
+    }
 }

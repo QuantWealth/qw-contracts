@@ -5,6 +5,7 @@ import {IntegrationBase} from '../IntegrationBase.t.sol';
 
 import {IRewardsController} from '@aave/periphery-v3/contracts/rewards/interfaces/IRewardsController.sol';
 import {IERC20, IPool, QWAaveV3} from 'contracts/components/QWAaveV3.sol';
+import {IQWManager} from 'interfaces/IQWManager.sol';
 import {IQWComponent} from 'interfaces/IQWComponent.sol';
 
 contract AaveIntegrationV3 is IntegrationBase {

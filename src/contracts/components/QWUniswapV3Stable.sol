@@ -80,7 +80,7 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
 
         (uint256 liquidity, uint256 amount0, uint256 amount1) = increaseLiquidityCurrentRange(_amount);
 
-        assetAmountReceived = uint256(liquidity);
+        assetAmountReceived = uint256(liquidity); // TODO: Is liquidity the total amount or the amount received?
 
         // TODO: Send NFT to QWManager
 

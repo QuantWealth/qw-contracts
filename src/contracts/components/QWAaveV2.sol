@@ -39,9 +39,6 @@ contract QWAaveV2 is IQWComponent, QWComponentBase {
      * @return assetAmountReceived Amount of asset tokens received.
      */
     function open(uint256 _amount) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
-        // Transfer tokens from QWManager to this contract.
-        // IERC20 token = IERC20(INVESTMENT_TOKEN);
-        // token.transferFrom(QW_MANAGER, address(this), _amount);
         // Check whether we have been transferred the tokens to spend.
         _checkInvestment(_amount);
 
@@ -72,7 +69,7 @@ contract QWAaveV2 is IQWComponent, QWComponentBase {
         _checkAssets(_amount);
 
         // Withdraw the tokens from Aave.
-        ILendingPool(LENDING_POOL).withdraw(INVESTMENT_TOKEN, _amount, address(this));
+        ILendingPool(LENDING_POOL).withdraw(ASSET_TOKEN, _amount, address(this));
 
         // Check the balance of the investment token received.        
         tokenAmountReceived = _checkInvestmentAny();

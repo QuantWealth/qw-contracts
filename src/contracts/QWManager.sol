@@ -86,7 +86,7 @@ contract QWManager is IQWManager, Ownable {
                 nft.transferFrom(address(this), batch.protocol, protocol.nftId);
             }
 
-            // Call the create function on the target contract with the provided calldata.
+            // Call the open function on the target contract with the provided calldata.
             (bool success, uint256 assetAmountReceived) = IQWComponent(batch.protocol).open(batch.amount);
             if (!success) {
                 // TODO: Event for batches that fail.
@@ -124,6 +124,7 @@ contract QWManager is IQWManager, Ownable {
 
             // Calculate the amount to withdraw based on the ratio provided.
             uint256 amountToWithdraw = (totalHoldings * batch.ratio) / 1e8;
+            // TODO
 
             // Update the protocol asset details.
             protocol.assetAmount -= amountToWithdraw;
@@ -139,7 +140,7 @@ contract QWManager is IQWManager, Ownable {
             }
 
             // Call the close function on the child contract.
-            (bool success, uint256 tokenAmountReceived) = IQWComponent(batch.protocol).close(batch.ratio);
+            (bool success, uint256 tokenAmountReceived) = IQWComponent(batch.protocol).close(amountToWithdraw);
             if (!success) {
                 revert CallFailed();
             }

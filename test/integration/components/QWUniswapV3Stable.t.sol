@@ -11,6 +11,7 @@ import {
   IUniswapV3Pool,
   QWUniswapV3Stable
 } from 'contracts/components/QWUniswapV3Stable.sol';
+import {IQWManager} from 'interfaces/IQWManager.sol';
 
 contract UniswapV3stableIntegration is IntegrationBase {
   IUniswapV3Pool internal _uniswapUSDCUSDTPool = IUniswapV3Pool(0x7858E59e0C01EA06Df3aF3D20aC7B0003275D4Bf);
@@ -58,6 +59,12 @@ contract UniswapV3stableIntegration is IntegrationBase {
     // Create dynamic arrays with one element each
     address[] memory targetQWChild = new address[](1);
     targetQWChild[0] = address(_QWUniswapV3Stable);
+    // Create an array with one element
+    IQWManager.OpenBatch[] memory openBatchArr = new IQWManager.OpenBatch[](1);
+    openBatchArr[0] = IQWManager.OpenBatch({
+        protocol: address(_qwCompound),
+        amount: amount
+    });
 
     // execute the investment
     vm.prank(_owner);
