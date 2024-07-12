@@ -136,7 +136,7 @@ contract QWManager is IQWManager, Ownable {
                 nft.transferFrom(address(this), batch.protocol, protocol.positionManager.amount);
             }
 
-            if (protocol.asset.contractAddress != address(0))
+            if (protocol.asset.contractAddress != address(0)) {
                 // Transfer tokens to the child contract.
                 IERC20(protocol.asset.contractAddress).transfer(batch.protocol, amountToWithdraw);
             }
