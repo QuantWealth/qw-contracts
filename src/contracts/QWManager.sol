@@ -14,21 +14,23 @@ import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
  * @notice This contract manages the execution, closing, and withdrawal of various strategies for Quant Wealth.
  */
 contract QWManager is IQWManager, Ownable {
-    enum ProtocolClassification { NONE, POSITION_MANAGER }
+
+    struct ProtocolAsset {
+        address contractAddress;
+        uint256 amount;
+    }
 
     struct Protocol {
-        ProtocolClassification classification;
-        address assetAddress;
-        uint256 assetAmount;
-        address investmentToken;
-        uint256 nftId;
+        address depositToken;
+        ProtocolAsset asset;
+        ProtocolAsset positionManager;
     }
 
     // Variables
     address public immutable REGISTRY;
 
     // Tracks protocol assets and other information.
-    mapping(address => Protocol) public protocols;
+    mapping(address => Protocol> public protocols;
 
     event ProtocolDeposit(
         uint256 indexed epoch,
@@ -73,17 +75,17 @@ contract QWManager is IQWManager, Ownable {
             }
 
             // Get the protocol asset details.
-            Protocol memory protocol = protocols[batch.protocol];
-            uint256 previousAmount = protocol.assetAmount;
+            Protocol storage protocol = protocols[batch.protocol];
+            uint256 previousAmount = protocol.asset.amount;
 
             // Approve the target contract to spend the specified amount of tokens.
-            IERC20 token = IERC20(protocol.investmentToken);
+            IERC20 token = IERC20(protocol.depositToken);
             token.approve(address(batch.protocol), batch.amount);
 
             // Transfer relevant NFT position manager, if applicable.
-            if (protocol.classification == ProtocolClassification.POSITION_MANAGER) {
-                IERC721 nft = IERC721(protocol.assetAddress);
-                nft.transferFrom(address(this), batch.protocol, protocol.nftId);
+            if (protocol.positionManager.contractAddress != address(0)) {
+                IERC721 nft = IERC721(protocol.positionManager.contractAddress);
+                nft.transferFrom(address(this), batch.protocol, protocol.positionManager.amount);
             }
 
             // Call the open function on the target contract with the provided calldata.
@@ -95,8 +97,7 @@ contract QWManager is IQWManager, Ownable {
             // TODO: Ensure protocol asset correct amount was transferred.
 
             // Update the protocol with a new asset amount for the asset we have purchased.
-            protocol.assetAmount = previousAmount + assetAmountReceived;
-            protocols[batch.protocol] = protocol;
+            protocol.asset.amount = previousAmount + assetAmountReceived;
 
             // Emit deposit event.
             emit ProtocolDeposit(
@@ -119,24 +120,25 @@ contract QWManager is IQWManager, Ownable {
             CloseBatch memory batch = batches[i];
 
             // Get the protocol asset details.
-            Protocol memory protocol = protocols[batch.protocol];
-            uint256 totalHoldings = protocol.assetAmount;
+            Protocol storage protocol = protocols[batch.protocol];
+            uint256 totalHoldings = protocol.asset.amount;
 
             // Calculate the amount to withdraw based on the ratio provided.
             uint256 amountToWithdraw = (totalHoldings * batch.ratio) / 1e8;
-            // TODO
 
             // Update the protocol asset details.
-            protocol.assetAmount -= amountToWithdraw;
-            protocols[batch.protocol] = protocol;
+            protocol.asset.amount -= amountToWithdraw;
 
-            if (protocol.classification == ProtocolClassification.POSITION_MANAGER) {
+            if (protocol.positionManager.contractAddress != address(0)) {
                 // Transfer relevant NFT position manager, if applicable.
-                IERC721 nft = IERC721(protocol.assetAddress);
-                nft.transferFrom(address(this), batch.protocol, protocol.nftId);
-            } else {
+                IERC721 nft = IERC721(protocol.positionManager.contractAddress);
+                // Amount refers to the NFT ID here.
+                nft.transferFrom(address(this), batch.protocol, protocol.positionManager.amount);
+            }
+
+            if (protocol.asset.contractAddress != address(0))
                 // Transfer tokens to the child contract.
-                IERC20(protocol.assetAddress).transfer(batch.protocol, amountToWithdraw);
+                IERC20(protocol.asset.contractAddress).transfer(batch.protocol, amountToWithdraw);
             }
 
             // Call the close function on the child contract.
@@ -144,7 +146,7 @@ contract QWManager is IQWManager, Ownable {
             if (!success) {
                 revert CallFailed();
             }
-            // TODO: Ensure tokens were transferred. Tokens received will be protocol.investmentToken.
+            // TODO: Ensure tokens were transferred. Tokens received will be protocol.depositToken.
 
             // Emit withdrawal event.
             emit ProtocolWithdrawal(block.timestamp, batch.protocol, batch.ratio, tokenAmountReceived);
@@ -173,5 +175,24 @@ contract QWManager is IQWManager, Ownable {
     function receiveFunds(address _user, address _tokenAddress, uint256 _amount) external {
         IERC20 token = IERC20(_tokenAddress);
         token.transferFrom(_user, address(this), _amount);
+    }
+
+    /**
+     * @notice Set a protocol in storage without erasing an existing entry.
+     * @param protocolAddress The address of the protocol.
+     * @param depositToken The address of the deposit token.
+     * @param asset The ProtocolAsset for the protocol's asset.
+     * @param positionManager The ProtocolAsset for the protocol's position manager.
+     */
+    function setProtocol(
+        address protocolAddress,
+        address depositToken,
+        ProtocolAsset memory asset,
+        ProtocolAsset memory positionManager
+    ) external onlyOwner {
+        Protocol storage protocol = protocols[protocolAddress];
+        protocol.depositToken = depositToken;
+        protocol.asset = asset;
+        protocol.positionManager = positionManager;
     }
 }
