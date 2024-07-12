@@ -30,7 +30,7 @@ contract QWManager is IQWManager, Ownable {
     address public immutable REGISTRY;
 
     // Tracks protocol assets and other information.
-    mapping(address => Protocol> public protocols;
+    mapping(address => Protocol) public protocols;
 
     event ProtocolDeposit(
         uint256 indexed epoch,
