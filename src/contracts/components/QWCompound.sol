@@ -17,16 +17,12 @@ contract QWCompound is IQWComponent, QWComponentBase {
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
-     * @param _investmentToken The address of the investment token (e.g., USDC).
-     * @param _assetToken The address of the asset token received from Compound (e.g., cUSDC).
      * @param _comet The address of the Compound comet contract.
      */
     constructor(
         address _qwManager,
-        address _investmentToken,
-        address _assetToken,
         address _comet
-    ) QWComponentBase(_qwManager, _investmentToken, _assetToken) {
+    ) QWComponentBase(_qwManager) {
         COMET = _comet;
     }
 
@@ -35,43 +31,49 @@ contract QWCompound is IQWComponent, QWComponentBase {
      * @notice Executes a transaction on Compound comet to deposit tokens.
      * @dev This function is called by the parent contract to deposit tokens into the Compound comet.
      * @param _amount Amount of tokens to be deposited.
+     * @param _asset The address of the asset token to be deposited.
      * @return success boolean indicating the success of the transaction.
      * @return assetAmountReceived The amount of asset tokens received from the deposit.
      */
     function open(
-        uint256 _amount
+        uint256 _amount,
+        address _asset
     ) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
-        _checkInvestment(_amount);
+        _checkDepositTokens(_amount, _asset);
 
-        IERC20(INVESTMENT_TOKEN).approve(COMET, _amount);
+        IERC20(_asset).approve(COMET, _amount);
 
         // Perform the supply to Compound.
-        IComet(COMET).supplyTo(address(this), INVESTMENT_TOKEN, _amount);
+        IComet(COMET).supplyTo(address(this), _asset, _amount);
 
-        assetAmountReceived = _checkAssetsAny();
+        assetAmountReceived = _checkAssetsAny(_asset);
         success = true;
 
-        // TODO: Transfer tokens to QWManager
+        // Transfer assets to QWManager.
+        IERC20(_asset).transfer(QW_MANAGER, assetAmountReceived);
     }
 
     /**
      * @notice Executes a transaction on Compound comet to withdraw tokens.
      * @dev This function is called by the parent contract to withdraw tokens from the Compound comet.
      * @param _amount Amount of asset tokens to withdraw.
+     * @param _asset The address of the asset token.
      * @return success boolean indicating the success of the transaction.
      * @return tokenAmountReceived The amount of tokens received from the withdrawal.
      */
     function close(
-        uint256 _amount
+        uint256 _amount,
+        address _asset
     ) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
-        _checkAssets(_amount);
+        _checkAssets(_amount, _asset);
 
         // Perform the withdraw from Compound.
-        IComet(COMET).withdrawTo(address(this), INVESTMENT_TOKEN, _amount);
+        IComet(COMET).withdrawTo(address(this), _asset, _amount);
 
-        tokenAmountReceived = _checkInvestmentAny();
+        tokenAmountReceived = _checkDepositTokensAny(_asset);
         success = true;
 
-        // TODO: transfer tokens to QWManager
+        // Transfer tokens to QWManager.
+        IERC20(_asset).transfer(QW_MANAGER, tokenAmountReceived);
     }
 }

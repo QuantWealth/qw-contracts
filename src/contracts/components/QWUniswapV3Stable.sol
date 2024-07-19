@@ -41,7 +41,6 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
-     * @param _investmentToken The address of the investment token (e.g., USDC).
      * @param _nonfungiblePositionManager The address of the Uniswap V3 non-fungible position manager contract.
      * @param _factory The address of the Uniswap V3 factory contract.
      * @param _WETH9 The address of the WETH9 contract.
@@ -49,7 +48,6 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
      */
     constructor(
         address _qwManager,
-        address _investmentToken,
         address _nonfungiblePositionManager,
         address _factory,
         address _WETH9,
@@ -57,7 +55,7 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
     )
     PeripheryImmutableState(_factory, _WETH9)
     Ownable(msg.sender)
-    QWComponentBase(_qwManager, _investmentToken, _nonfungiblePositionManager) {
+    QWComponentBase(_qwManager) {
         NFT_POSITION_MANAGER = INonfungiblePositionManager(_nonfungiblePositionManager);
         QW_MANAGER = _qwManager;
         UNISWAP_POOL = IUniswapV3Pool(_uniswapPool);
@@ -67,22 +65,23 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
      * @notice Executes a transaction on Uniswap V3 pool to deposit tokens.
      * @dev This function is called by the parent contract to deposit tokens into the Uniswap V3 pool.
      * @param _amount Amount of tokens to be deposited.
+     * @param _asset The address of the asset token.
      * @return success boolean indicating the success of the transaction.
      * @return assetAmountReceived The amount of assets received from the deposit.
      */
     function open(
-        uint256 _amount
+        uint256 _amount,
+        address _asset
     ) external override onlyQwManager whenInitialized returns (bool success, uint256 assetAmountReceived) {
-        _checkInvestment(_amount);
-        // TODO: Check to ensure NFT position manager was transferred
-        // TODO: INVESMENT_TOKEN needs to be swapped for token0, token1 as needed, and updated amount for each
-        // passed into increaseLiquidityCurrentRange
+        _checkDepositTokens(_amount, _asset);
 
         (uint256 liquidity, uint256 amount0, uint256 amount1) = increaseLiquidityCurrentRange(_amount);
 
-        assetAmountReceived = uint256(liquidity); // TODO: Is liquidity the total amount or the amount received?
+        assetAmountReceived = uint256(liquidity);
 
-        // TODO: Send NFT to QWManager
+        // Transfer NFT to QWManager.
+        // Note: Transfer should happen based on certain conditions or requirements.
+        // IERC721(NFT_POSITION_MANAGER).transferFrom(address(this), QW_MANAGER, uniswapPositionTokenId);
 
         success = true;
     }
@@ -91,22 +90,26 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
      * @notice Executes a transaction on Uniswap V3 pool to withdraw tokens.
      * @dev This function is called by the parent contract to withdraw tokens from the Uniswap V3 pool.
      * @param _amount Amount of holdings to withdraw.
+     * @param _asset The address of the asset token.
      * @return success boolean indicating the success of the transaction.
      * @return tokenAmountReceived The amount of tokens received from the withdrawal.
      */
     function close(
-        uint256 _amount
+        uint256 _amount,
+        address _asset
     ) external override onlyQwManager whenInitialized returns (bool success, uint256 tokenAmountReceived) {
-        // TODO: Check to ensure amount is present on the NFT position manager
-        // TODO: Check to ensure NFT position manager was transferred
+        (uint256 amount0, uint256 amount1) = decreaseLiquidity();
 
-        (uint256 amount0, uint256 amount1) = decreaseLiquidity(); // TODO: decreaseLiquidity should take _amount
-        tokenAmountReceived = amount0 + amount1;
-        // TODO: This is incorrect! We should check to see if token0 or token1 are already INVESMENT_TOKEN, if either
-        // are not the INVESMENT_TOKEN, swap them for the INVESMENT_TOKEN using a swap router
+        // Implement swapping logic to convert amount0 and amount1 into the target asset if needed.
 
-        // TODO: Transfer NFT back to QWManager.
-        // TODO: Transfer tokens back to QWManager.
+        tokenAmountReceived = amount0 + amount1; // Adjust this based on swapping results.
+
+        // Transfer tokens to QWManager.
+        // IERC20(_asset).transfer(QW_MANAGER, tokenAmountReceived);
+
+        // Transfer NFT back to QWManager.
+        // Note: Transfer should happen based on certain conditions or requirements.
+        // IERC721(NFT_POSITION_MANAGER).transferFrom(address(this), QW_MANAGER, uniswapPositionTokenId);
 
         success = true;
     }

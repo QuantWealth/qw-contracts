@@ -8,13 +8,11 @@ import {IQWComponent} from 'interfaces/IQWComponent.sol';
 
 abstract contract QWComponentBase is IQWComponent {
     address public immutable QW_MANAGER;
-    address public immutable INVESTMENT_TOKEN;
-    address public immutable ASSET_TOKEN;
 
     // Custom errors
     error InvalidCallData(); // Error for invalid call data
     error UnauthorizedAccess(); // Error for unauthorized caller
-    error IncorrectInvestmentTokensReceived(uint256 amount);
+    error IncorrectDepositTokensReceived(uint256 amount);
     error IncorrectAssetTokensReceived(uint256 amount);
 
     modifier onlyQwManager() {
@@ -24,10 +22,8 @@ abstract contract QWComponentBase is IQWComponent {
         _;
     }
 
-    constructor(address _qwManager, address _investmentToken, address _assetToken) {
+    constructor(address _qwManager) {
         QW_MANAGER = _qwManager;
-        INVESTMENT_TOKEN = _investmentToken;
-        ASSET_TOKEN = _assetToken;
     }
 
     /**
@@ -38,37 +34,23 @@ abstract contract QWComponentBase is IQWComponent {
     }
 
     /**
-     * @notice Gets the address of the investment token, the token input and output for the contract.
+     * @notice Checks whether we've received the proper amount of deposit tokens.
      */
-    function getInvestmentToken() external view override returns (address) {
-        return INVESTMENT_TOKEN;
-    }
-
-    /**
-     * @notice Gets the address of the asset token, the token that is purchased and sold using the investment token.
-     */
-    function getAssetToken() external view override returns (address) {
-        return ASSET_TOKEN;
-    }
-
-    /**
-     * @notice Checks whether we've received the proper amount of investment tokens.
-     */
-    function _checkInvestment(uint256 _expectedAmount) internal view returns (uint256) {
-        uint256 balance = IERC20(INVESTMENT_TOKEN).balanceOf(address(this));
+    function _checkDepositTokens(uint256 _expectedAmount, address _depositToken) internal view returns (uint256) {
+        uint256 balance = IERC20(_depositToken).balanceOf(address(this));
         if (balance != _expectedAmount) {
-            revert IncorrectInvestmentTokensReceived(balance);
+            revert IncorrectDepositTokensReceived(balance);
         }
         return balance;
     }
 
     /**
-     * @notice Checks whether we've received any amount of investment tokens.
+     * @notice Checks whether we've received any amount of deposit tokens.
      */
-    function _checkInvestmentAny() internal view returns (uint256) {
-        uint256 balance = IERC20(INVESTMENT_TOKEN).balanceOf(address(this));
+    function _checkDepositTokensAny(address _depositToken) internal view returns (uint256) {
+        uint256 balance = IERC20(_depositToken).balanceOf(address(this));
         if (balance == 0) {
-            revert IncorrectInvestmentTokensReceived(balance);
+            revert IncorrectDepositTokensReceived(balance);
         }
         return balance;
     }
@@ -76,19 +58,19 @@ abstract contract QWComponentBase is IQWComponent {
     /**
      * @notice Check how much assets we have received upon closing a position.
      */
-    function _checkAssets(uint256 _expectedAmount) internal view returns (uint256) {
-        uint256 balance = IERC20(ASSET_TOKEN).balanceOf(address(this));
+    function _checkAssets(uint256 _expectedAmount, address _asset) internal view returns (uint256) {
+        uint256 balance = IERC20(_asset).balanceOf(address(this));
         if (balance != _expectedAmount) {
-            revert IncorrectInvestmentTokensReceived(balance);
+            revert IncorrectAssetTokensReceived(balance);
         }
         return balance;
     }
 
     /**
-     * @notice Checks whether we've received any amount of investment tokens.
+     * @notice Checks whether we've received any amount of asset tokens.
      */
-    function _checkAssetsAny() internal view returns (uint256) {
-        uint256 balance = IERC20(ASSET_TOKEN).balanceOf(address(this));
+    function _checkAssetsAny(address _asset) internal view returns (uint256) {
+        uint256 balance = IERC20(_asset).balanceOf(address(this));
         if (balance == 0) {
             revert IncorrectAssetTokensReceived(balance);
         }
