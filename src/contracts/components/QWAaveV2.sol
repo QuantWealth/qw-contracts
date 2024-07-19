@@ -3,57 +3,50 @@ pragma solidity 0.8.23;
 
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {IQWComponent} from 'interfaces/IQWComponent.sol';
-import {QWComponentBase} from './QWComponentBase.sol';
 import {ILendingPool} from 'interfaces/aave-v2/ILendingPool.sol';
 
 /**
  * @title AaveV2 Integration for Quant Wealth
  * @notice This contract integrates with AaveV2 protocol for Quant Wealth management.
  */
-contract QWAaveV2 is IQWComponent, QWComponentBase {
-    // Variables
+contract QWAaveV2 is IQWComponent {
+    address public immutable QW_MANAGER;
     address public immutable LENDING_POOL;
+
+    // Custom errors
+    error UnauthorizedAccess(); // Error for unauthorized caller
+
+    modifier onlyQwManager() {
+        if (msg.sender != QW_MANAGER) {
+            revert UnauthorizedAccess();
+        }
+        _;
+    }
 
     /**
      * @dev Constructor to initialize the contract with required addresses.
      * @param _qwManager The address of the Quant Wealth Manager contract.
-     * @param _investmentToken The address of the investment token (e.g., USDT).
-     * @param _assetToken The address of the corresponding aToken (e.g., aUSDT).
      * @param _lendingPool The address of the AaveV2 pool contract.
      */
-    constructor(
-        address _qwManager,
-        address _investmentToken,
-        address _assetToken,
-        address _lendingPool
-    ) QWComponentBase(_qwManager, _investmentToken, _assetToken) {
+    constructor(address _qwManager, address _lendingPool) {
+        QW_MANAGER = _qwManager;
         LENDING_POOL = _lendingPool;
     }
 
-    // Functions
     /**
      * @notice Executes a transaction on AaveV2 pool to deposit tokens.
      * @dev This function is called by the parent contract to deposit tokens into the AaveV2 pool.
      * @param _amount Amount of tokens to be deposited.
+     * @param _asset Address of the asset to be deposited.
      * @return success boolean indicating the success of the transaction.
      * @return assetAmountReceived Amount of asset tokens received.
      */
-    function open(uint256 _amount) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
-        // Check whether we have been transferred the tokens to spend.
-        _checkInvestment(_amount);
+    function open(uint256 _amount, address _asset) external override onlyQwManager returns (bool success, uint256 assetAmountReceived) {
+        IERC20(_asset).transferFrom(QW_MANAGER, address(this), _amount);
+        IERC20(_asset).approve(LENDING_POOL, _amount);
 
-        // Approve the Aave lending pool to spend the tokens.
-        IERC20(INVESTMENT_TOKEN).approve(LENDING_POOL, _amount);
-
-        // Deposit tokens into Aave.
-        ILendingPool(LENDING_POOL).deposit(INVESTMENT_TOKEN, _amount, address(this), 0);
-
-        // Get the balance of aTokens, which will reflect the principle investment(s) + interest.
-        // Check to ensure we have received the target asset.
-        assetAmountReceived = _checkAssetsAny();
-
-        // Transfer assets to QWManager.
-        IERC20(ASSET_TOKEN).transfer(QW_MANAGER, assetAmountReceived);
+        ILendingPool(LENDING_POOL).deposit(_asset, _amount, address(this), 0);
+        assetAmountReceived = IERC20(_asset).balanceOf(address(this));
 
         success = true;
     }
@@ -62,21 +55,23 @@ contract QWAaveV2 is IQWComponent, QWComponentBase {
      * @notice Executes a transaction on AaveV2 pool to withdraw tokens.
      * @dev This function is called by the parent contract to withdraw tokens from the AaveV2 pool.
      * @param _amount Amount of holdings to be withdrawn.
+     * @param _asset Address of the asset to be withdrawn.
      * @return success boolean indicating the success of the transaction.
      * @return tokenAmountReceived Number of tokens to be returned to the user in exchange for the withdrawn ratio.
      */
-    function close(uint256 _amount) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
-        _checkAssets(_amount);
+    function close(uint256 _amount, address _asset) external override onlyQwManager returns (bool success, uint256 tokenAmountReceived) {
+        ILendingPool(LENDING_POOL).withdraw(_asset, _amount, address(this));
+        tokenAmountReceived = IERC20(_asset).balanceOf(address(this));
 
-        // Withdraw the tokens from Aave.
-        ILendingPool(LENDING_POOL).withdraw(ASSET_TOKEN, _amount, address(this));
-
-        // Check the balance of the investment token received.        
-        tokenAmountReceived = _checkInvestmentAny();
-
-        // Transfer tokens to QWManager.
-        IERC20(INVESTMENT_TOKEN).transfer(QW_MANAGER, tokenAmountReceived);
-
+        IERC20(_asset).transfer(QW_MANAGER, tokenAmountReceived);
         success = true;
+    }
+
+    /**
+     * @notice Gets the address of the Quant Wealth Manager contract.
+     * @return address The address of the Quant Wealth Manager contract.
+     */
+    function getQWManager() external view override returns (address) {
+        return QW_MANAGER;
     }
 }
