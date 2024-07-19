@@ -14,35 +14,31 @@ import {IQWRegistry} from 'interfaces/IQWRegistry.sol';
  * @notice This contract manages the execution, closing, and withdrawal of various strategies for Quant Wealth.
  */
 contract QWManager is IQWManager, Ownable {
-
-    struct ProtocolAsset {
-        address contractAddress;
-        uint256 amount;
-    }
-
-    struct Protocol {
-        address depositToken;
-        ProtocolAsset asset;
-        ProtocolAsset positionManager;
+    struct ComponentNft {
+        address nftContract;
+        uint256 nftId;
     }
 
     // Variables
     address public immutable REGISTRY;
 
-    // Tracks protocol assets and other information.
-    mapping(address => Protocol) public protocols;
+    // Tracks component assets and other information.
+    mapping(address => mapping(address => uint256)) public componentAssets;
+    mapping(address => ComponentNft) public componentPositionManagers;
 
     event ProtocolDeposit(
         uint256 indexed epoch,
-        address indexed protocol,
+        address indexed component,
+        address asset,
         uint256 amount,
         uint256 previousTotalHoldings,
         uint256 newTotalHoldings
     );
     event ProtocolWithdrawal(
         uint256 indexed epoch,
-        address indexed protocol,
-        uint256 ratio,
+        address indexed component,
+        address asset,
+        uint256 amount,
         uint256 tokenAmountReceived
     );
 
@@ -61,48 +57,49 @@ contract QWManager is IQWManager, Ownable {
     // External Functions
 
     /**
-     * @notice Execute a series of investments in batches for multiple protocols.
+     * @notice Execute a series of investments in batches for multiple components.
      * Transfers specified amounts of tokens and calls target contracts with provided calldata.
-     * @param batches Array of ExecuteBatch data containing protocol, users, contributions, token, and amount.
+     * @param batches Array of OpenBatch data containing component, users, contributions, token, amount, and asset.
      */
     function open(OpenBatch[] memory batches) external onlyOwner {
         for (uint256 i = 0; i < batches.length; i++) {
             OpenBatch memory batch = batches[i];
 
             // Check if the target contract is whitelisted
-            if (!IQWRegistry(REGISTRY).whitelist(batch.protocol)) {
+            if (!IQWRegistry(REGISTRY).whitelist(batch.component)) {
                 revert ContractNotWhitelisted();
             }
 
-            // Get the protocol asset details.
-            Protocol storage protocol = protocols[batch.protocol];
-            uint256 previousAmount = protocol.asset.amount;
+            // Get the current holdings of the asset.
+            uint256 previousAmount = componentAssets[batch.component][batch.asset];
 
             // Approve the target contract to spend the specified amount of tokens.
-            IERC20 token = IERC20(protocol.depositToken);
-            token.approve(address(batch.protocol), batch.amount);
+            IERC20 token = IERC20(batch.token);
+            token.approve(address(batch.component), batch.amount);
 
             // Transfer relevant NFT position manager, if applicable.
-            if (protocol.positionManager.contractAddress != address(0)) {
-                IERC721 nft = IERC721(protocol.positionManager.contractAddress);
-                nft.transferFrom(address(this), batch.protocol, protocol.positionManager.amount);
+            ComponentNft memory positionManager = componentPositionManagers[batch.component];
+            if (positionManager.nftContract != address(0)) {
+                IERC721 nft = IERC721(positionManager.nftContract);
+                nft.transferFrom(address(this), batch.component, positionManager.nftId);
             }
 
             // Call the open function on the target contract with the provided calldata.
-            (bool success, uint256 assetAmountReceived) = IQWComponent(batch.protocol).open(batch.amount);
+            (bool success, uint256 assetAmountReceived) = IQWComponent(batch.component).open(batch.amount, batch.asset);
             if (!success) {
                 // TODO: Event for batches that fail.
                 revert CallFailed();
             }
             // TODO: Ensure protocol asset correct amount was transferred.
 
-            // Update the protocol with a new asset amount for the asset we have purchased.
-            protocol.asset.amount = previousAmount + assetAmountReceived;
+            // Update the component's asset holdings.
+            componentAssets[batch.component][batch.asset] = previousAmount + assetAmountReceived;
 
             // Emit deposit event.
             emit ProtocolDeposit(
                 block.timestamp,
-                batch.protocol,
+                batch.component,
+                batch.asset,
                 batch.amount,
                 previousAmount,
                 previousAmount + assetAmountReceived
@@ -111,45 +108,48 @@ contract QWManager is IQWManager, Ownable {
     }
 
     /**
-     * @notice Close a series of investments in batches for multiple protocols.
+     * @notice Close a series of investments in batches for multiple components.
      * Calls target contracts with provided calldata to close positions.
-     * @param batches Array of CloseBatch data containing protocol, users, contributions, token, and shares.
+     * @param batches Array of CloseBatch data containing component, users, contributions, token, shares, and asset.
      */
     function close(CloseBatch[] memory batches) external onlyOwner {
         for (uint256 i = 0; i < batches.length; i++) {
             CloseBatch memory batch = batches[i];
 
-            // Get the protocol asset details.
-            Protocol storage protocol = protocols[batch.protocol];
-            uint256 totalHoldings = protocol.asset.amount;
+            // Get the current holdings of the asset.
+            uint256 totalHoldings = componentAssets[batch.component][batch.asset];
 
             // Calculate the amount to withdraw based on the ratio provided.
             uint256 amountToWithdraw = (totalHoldings * batch.ratio) / 1e8;
 
-            // Update the protocol asset details.
-            protocol.asset.amount -= amountToWithdraw;
+            // Update the component's asset holdings.
+            componentAssets[batch.component][batch.asset] -= amountToWithdraw;
 
-            if (protocol.positionManager.contractAddress != address(0)) {
-                // Transfer relevant NFT position manager, if applicable.
-                IERC721 nft = IERC721(protocol.positionManager.contractAddress);
-                // Amount refers to the NFT ID here.
-                nft.transferFrom(address(this), batch.protocol, protocol.positionManager.amount);
-            }
-
-            if (protocol.asset.contractAddress != address(0)) {
+            // Transfer relevant NFT position manager, if applicable.
+            ComponentNft memory positionManager = componentPositionManagers[batch.component];
+            if (positionManager.nftContract != address(0)) {
+                IERC721 nft = IERC721(positionManager.nftContract);
+                nft.transferFrom(address(this), batch.component, positionManager.nftId);
+            } else {
                 // Transfer tokens to the child contract.
-                IERC20(protocol.asset.contractAddress).transfer(batch.protocol, amountToWithdraw);
+                IERC20(batch.asset).transfer(batch.component, amountToWithdraw);
             }
 
             // Call the close function on the child contract.
-            (bool success, uint256 tokenAmountReceived) = IQWComponent(batch.protocol).close(amountToWithdraw);
+            (bool success, uint256 tokenAmountReceived) = IQWComponent(batch.component).close(amountToWithdraw, batch.asset);
             if (!success) {
                 revert CallFailed();
             }
-            // TODO: Ensure tokens were transferred. Tokens received will be protocol.depositToken.
+            // TODO: Ensure tokens were transferred. Tokens received will be batch.token.
 
             // Emit withdrawal event.
-            emit ProtocolWithdrawal(block.timestamp, batch.protocol, batch.ratio, tokenAmountReceived);
+            emit ProtocolWithdrawal(
+                block.timestamp,
+                batch.component,
+                batch.asset,
+                amountToWithdraw,
+                tokenAmountReceived
+            );
         }
     }
 
@@ -179,20 +179,17 @@ contract QWManager is IQWManager, Ownable {
 
     /**
      * @notice Set a protocol in storage without erasing an existing entry.
-     * @param protocolAddress The address of the protocol.
-     * @param depositToken The address of the deposit token.
-     * @param asset The ProtocolAsset for the protocol's asset.
-     * @param positionManager The ProtocolAsset for the protocol's position manager.
+     * @param component The address of the component.
+     * @param nftContract The address of the NFT contract.
+     * @param nftId The ID of the NFT.
      */
-    function setProtocol(
-        address protocolAddress,
-        address depositToken,
-        ProtocolAsset memory asset,
-        ProtocolAsset memory positionManager
+    function setComponentPositionManager(
+        address component,
+        address nftContract,
+        uint256 nftId
     ) external onlyOwner {
-        Protocol storage protocol = protocols[protocolAddress];
-        protocol.depositToken = depositToken;
-        protocol.asset = asset;
-        protocol.positionManager = positionManager;
+        ComponentNft storage positionManager = componentPositionManagers[component];
+        positionManager.nftContract = nftContract;
+        positionManager.nftId = nftId;
     }
 }
