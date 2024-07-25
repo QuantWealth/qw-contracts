@@ -18,18 +18,18 @@ contract UniswapV3stableIntegration is IntegrationBase {
   INonfungiblePositionManager internal _nonfungiblePositionManager =
     INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
   QWUniswapV3Stable internal _QWUniswapV3Stable;
-  address internal investmentToken;
+  address internal depositToken;
 
   function setUp() public virtual override {
     IntegrationBase.setUp();
 
-    investmentToken = address(0x123);
+    depositToken = address(0x123);
 
     address _factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
     address _weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     vm.startPrank(_owner);
     _QWUniswapV3Stable = new QWUniswapV3Stable(
-      address(_qwManager), investmentToken, address(_nonfungiblePositionManager), _factory, _weth, address(_uniswapUSDCUSDTPool)
+      address(_qwManager), address(_nonfungiblePositionManager), _factory, _weth, address(_uniswapUSDCUSDTPool)
     );
     _qwRegistry.registerComponent(address(_QWUniswapV3Stable));
     vm.stopPrank();
@@ -41,14 +41,14 @@ contract UniswapV3stableIntegration is IntegrationBase {
     _usdt.transfer(address(_owner), amount);
 
     vm.startPrank(_owner);
-    // minting new position
+    // Minting new position
     _usdc.approve(address(_QWUniswapV3Stable), amount);
     _usdt.approve(address(_QWUniswapV3Stable), amount);
     _QWUniswapV3Stable.mintNewPosition(amount, amount);
     vm.stopPrank();
   }
 
-  function test_CreateUniswapV3Stable() public {
+  function test_UniswapV3Stable__openShouldWork() public {
     uint256 amount = 1e10; // 10k usdc
     address tokenAddress = address(_usdc);
 
@@ -56,39 +56,42 @@ contract UniswapV3stableIntegration is IntegrationBase {
     _usdc.transfer(address(_qwManager), amount);
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
-    // Create dynamic arrays with one element each
-    address[] memory targetQWChild = new address[](1);
-    targetQWChild[0] = address(_QWUniswapV3Stable);
-    // Create an array with one element
+    // Create OpenBatch array
     IQWManager.OpenBatch[] memory openBatchArr = new IQWManager.OpenBatch[](1);
     openBatchArr[0] = IQWManager.OpenBatch({
-        protocol: address(_qwCompound),
-        amount: amount
+        component: address(_QWUniswapV3Stable),
+        token: tokenAddress,
+        amount: amount,
+        asset: address(_uniswapUSDCUSDTPool)
     });
 
-    // execute the investment
+    // Execute the investment
     vm.prank(_owner);
-    _qwManager.open(targetQWChild, amount);
+    _qwManager.open(openBatchArr);
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
     assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
     assertEq(usdcBalanceAfter, 0);
   }
 
-  function test_CloseUniswapV3Stable() public {
-    // create investment in uniswap
-    test_CreateUniswapV3Stable();
+  function test_UniswapV3Stable__closeShouldWork() public {
+    // Create investment in uniswap
+    test_UniswapV3Stable__openShouldWork();
 
     uint256 ratio = 1e8; // 100%
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
-    // Create dynamic arrays with one element each
-    address[] memory targetQWChild = new address[](1);
-    targetQWChild[0] = address(_QWUniswapV3Stable);
+    // Create CloseBatch array
+    IQWManager.CloseBatch[] memory closeBatchArr = new IQWManager.CloseBatch[](1);
+    closeBatchArr[0] = IQWManager.CloseBatch({
+        component: address(_QWUniswapV3Stable),
+        ratio: ratio,
+        asset: address(_uniswapUSDCUSDTPool)
+    });
 
-    // close the position
+    // Close the position
     vm.prank(_owner);
-    _qwManager.close(targetQWChild, ratio);
+    _qwManager.close(closeBatchArr);
 
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 

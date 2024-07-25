@@ -57,7 +57,6 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
     Ownable(msg.sender)
     QWComponentBase(_qwManager) {
         NFT_POSITION_MANAGER = INonfungiblePositionManager(_nonfungiblePositionManager);
-        QW_MANAGER = _qwManager;
         UNISWAP_POOL = IUniswapV3Pool(_uniswapPool);
     }
 
@@ -105,11 +104,11 @@ contract QWUniswapV3Stable is IQWComponent, QWComponentBase, Ownable, IERC721Rec
         tokenAmountReceived = amount0 + amount1; // Adjust this based on swapping results.
 
         // Transfer tokens to QWManager.
-        // IERC20(_asset).transfer(QW_MANAGER, tokenAmountReceived);
+        IERC20(_asset).transfer(QW_MANAGER, tokenAmountReceived);
 
         // Transfer NFT back to QWManager.
         // Note: Transfer should happen based on certain conditions or requirements.
-        // IERC721(NFT_POSITION_MANAGER).transferFrom(address(this), QW_MANAGER, uniswapPositionTokenId);
+        IERC721(NFT_POSITION_MANAGER).transferFrom(address(this), QW_MANAGER, uniswapPositionTokenId);
 
         success = true;
     }

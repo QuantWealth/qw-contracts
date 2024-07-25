@@ -17,62 +17,72 @@ contract AaveIntegrationV3 is IntegrationBase {
   function setUp() public virtual override {
     IntegrationBase.setUp();
 
-    address investmentToken = address(_usdc); // Adjust this according to your setup
-    address assetToken = address(_aUsdc); // Adjust this according to your setup
-
-    _QWAaveV3 = new QWAaveV3(address(_qwManager), address(_aavePool), investmentToken, assetToken);
+    _QWAaveV3 = new QWAaveV3(address(_qwManager), address(_aavePool));
     vm.prank(_owner);
     _qwRegistry.registerComponent(address(_QWAaveV3));
   }
 
-  function test_CreateAaveV3() public {
+  function test_AaveV3__openShouldWork() public {
     uint256 amount = 1e12; // 1 million usdc
 
-    // transfer usdc from user to qwManager contract
+    // Transfer usdc from user to qwManager contract
     vm.prank(_usdcWhale);
     _usdc.transfer(address(_qwManager), amount);
-    uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_qwManager));
+    uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_QWAaveV3));
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
-    // Create dynamic arrays with one element each
-    address[] memory targetQWChild = new address[](1);
-    targetQWChild[0] = address(_QWAaveV3);
+    // Create OpenBatch array
+    IQWManager.OpenBatch[] memory batches = new IQWManager.OpenBatch[](1);
+    batches[0] = IQWManager.OpenBatch({
+        component: address(_QWAaveV3),
+        token: address(_usdc),
+        amount: amount,
+        asset: address(_aUsdc)
+    });
 
-    // execute the investment
+    // Execute the investment
     vm.prank(_owner);
-    _qwManager.open(targetQWChild, amount);
-    uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
+    _qwManager.open(batches);
+    uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_QWAaveV3));
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
-    // Assertions
+    // Example for getting rewards
+    // vm.roll(19_921_492);
+    // _rewards.getUserUnclaimedRewards(0xD102D2A88Fa2d23DC4048f559aA05579F2b3d47f);
+    // _rewards.getUserUnclaimedRewards(address(_qwManager));
+
     assertGe(aUsdcBalanceAfter - aUsdcBalanceBefore, amount);
     assertEq(usdcBalanceBefore - usdcBalanceAfter, amount);
     assertEq(usdcBalanceAfter, 0);
   }
 
-  function test_CloseAaveV3() public {
-    // create investment in aave
-    test_CreateAaveV3();
+  function test_AaveV3__closeShouldWork() public {
+    // Create investment in Aave
+    test_AaveV3__openShouldWork();
 
-    uint256 ratio = 1e8; // 100% ratio
+    uint256 amount = _aUsdc.balanceOf(address(_QWAaveV3));
+    uint256 ratio = 1e8; // 100% withdrawal
 
-    uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_qwManager));
+    uint256 aUsdcBalanceBefore = _aUsdc.balanceOf(address(_QWAaveV3));
     uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
-    // Create dynamic arrays with one element each
-    address[] memory targetQWChild = new address[](1);
-    targetQWChild[0] = address(_QWAaveV3);
+    // Create CloseBatch array
+    IQWManager.CloseBatch[] memory batches = new IQWManager.CloseBatch[](1);
+    batches[0] = IQWManager.CloseBatch({
+        component: address(_QWAaveV3),
+        ratio: ratio,
+        asset: address(_aUsdc)
+    });
 
-    // close the position
+    // Close the position
     vm.prank(_owner);
-    _qwManager.close(targetQWChild, ratio);
+    _qwManager.close(batches);
 
-    uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_qwManager));
+    uint256 aUsdcBalanceAfter = _aUsdc.balanceOf(address(_QWAaveV3));
     uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
-    // Assertions
-    assertGe(usdcBalanceAfter - usdcBalanceBefore, aUsdcBalanceBefore);
-    assertEq(aUsdcBalanceBefore - aUsdcBalanceAfter, aUsdcBalanceBefore);
+    assertGe(usdcBalanceAfter - usdcBalanceBefore, amount);
+    assertEq(aUsdcBalanceBefore - aUsdcBalanceAfter, amount);
     assertEq(aUsdcBalanceAfter, 0);
   }
 }

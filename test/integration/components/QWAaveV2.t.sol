@@ -16,12 +16,12 @@ contract AaveIntegrationV2 is IntegrationBase {
   function setUp() public virtual override {
     IntegrationBase.setUp();
 
-    _QWAaveV2 = new QWAaveV2(address(_qwManager), address(_aaveLendingPool), address(_usdc), address(_aUsdc));
+    _QWAaveV2 = new QWAaveV2(address(_qwManager), address(_aaveLendingPool));
     vm.prank(_owner);
     _qwRegistry.registerComponent(address(_QWAaveV2));
   }
 
-  function test_OpenAaveV2() public {
+  function test_AaveV2__openShouldWork() public {
     uint256 amount = 1e12; // 1 million usdc
 
     // Transfer usdc from user to qwManager contract
@@ -33,8 +33,10 @@ contract AaveIntegrationV2 is IntegrationBase {
     // Create OpenBatch array
     IQWManager.OpenBatch[] memory batches = new IQWManager.OpenBatch[](1);
     batches[0] = IQWManager.OpenBatch({
-        protocol: address(_QWAaveV2),
-        amount: amount
+        component: address(_QWAaveV2),
+        token: address(_usdc),
+        amount: amount,
+        asset: address(_aUsdc)
     });
 
     // Execute the investment
@@ -53,9 +55,9 @@ contract AaveIntegrationV2 is IntegrationBase {
     assertEq(usdcBalanceAfter, 0);
   }
 
-  function test_CloseAaveV2() public {
+  function test_AaveV2__closeShouldWork() public {
     // Create investment in Aave
-    test_OpenAaveV2();
+    test_AaveV2__openShouldWork();
 
     uint256 amount = _aUsdc.balanceOf(address(_QWAaveV2));
     uint256 ratio = 1e8; // 100% withdrawal
@@ -66,8 +68,9 @@ contract AaveIntegrationV2 is IntegrationBase {
     // Create CloseBatch array
     IQWManager.CloseBatch[] memory batches = new IQWManager.CloseBatch[](1);
     batches[0] = IQWManager.CloseBatch({
-        protocol: address(_QWAaveV2),
-        ratio: ratio
+        component: address(_QWAaveV2),
+        ratio: ratio,
+        asset: address(_aUsdc)
     });
 
     // Close the position

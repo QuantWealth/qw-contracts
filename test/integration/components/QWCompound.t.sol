@@ -14,35 +14,37 @@ contract CompoundIntegration is IntegrationBase {
     function setUp() public virtual override {
         IntegrationBase.setUp();
 
-        _qwCompound = new QWCompound(address(_qwManager), address(_compoundV3Comet), address(_usdc), address(_cUsdcV3));
+        _qwCompound = new QWCompound(address(_qwManager), address(_compoundV3Comet));
         vm.prank(_owner);
         _qwRegistry.registerComponent(address(_qwCompound));
     }
 
-    function test_OpenCompound() public {
+    function test_Compound__openShouldWork() public {
         uint256 amount = 1e12; // 1 million usdc
         address tokenAddress = address(_usdc);
 
         uint256 supplyFee = 1; // supply fees taken by compound
 
-        // transfer usdc from user to qwManager contract
+        // Transfer usdc from user to qwManager contract
         vm.prank(_usdcWhale);
         _usdc.transfer(address(_qwManager), amount);
 
-        uint256 cUsdcV3BalanceBefore = _cUsdcV3.balanceOf(address(_qwManager));
+        uint256 cUsdcV3BalanceBefore = _cUsdcV3.balanceOf(address(_qwCompound));
         uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
-        // Create an array with one element
+        // Create OpenBatch array
         IQWManager.OpenBatch[] memory openBatchArr = new IQWManager.OpenBatch[](1);
         openBatchArr[0] = IQWManager.OpenBatch({
-            protocol: address(_qwCompound),
-            amount: amount
+            component: address(_qwCompound),
+            token: tokenAddress,
+            amount: amount,
+            asset: address(_cUsdcV3)
         });
 
-        // execute the investment
+        // Execute the investment
         vm.prank(_owner);
         _qwManager.open(openBatchArr);
-        uint256 cUsdcV3BalanceAfter = _cUsdcV3.balanceOf(address(_qwManager));
+        uint256 cUsdcV3BalanceAfter = _cUsdcV3.balanceOf(address(_qwCompound));
         uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
         assertGe(cUsdcV3BalanceAfter - cUsdcV3BalanceBefore, amount - supplyFee);
@@ -50,28 +52,29 @@ contract CompoundIntegration is IntegrationBase {
         assertEq(usdcBalanceAfter, 0);
     }
 
-    function test_CloseCompound() public {
-        // create investment in compound
-        test_OpenCompound();
+    function test_Compound__closeShouldWork() public {
+        // Create investment in compound
+        test_Compound__openShouldWork();
 
         uint256 ratio = 1e8; // 100% withdrawal
         uint256 withdrawFee = 2; // withdraw fees taken by compound
 
-        uint256 cUsdcV3BalanceBefore = _cUsdcV3.balanceOf(address(_qwManager));
+        uint256 cUsdcV3BalanceBefore = _cUsdcV3.balanceOf(address(_qwCompound));
         uint256 usdcBalanceBefore = _usdc.balanceOf(address(_qwManager));
 
-        // Create an array with one element
+        // Create CloseBatch array
         IQWManager.CloseBatch[] memory closeBatchArr = new IQWManager.CloseBatch[](1);
         closeBatchArr[0] = IQWManager.CloseBatch({
-            protocol: address(_qwCompound),
-            ratio: ratio
+            component: address(_qwCompound),
+            ratio: ratio,
+            asset: address(_cUsdcV3)
         });
 
-        // close the position
+        // Close the position
         vm.prank(_owner);
         _qwManager.close(closeBatchArr);
 
-        uint256 cUsdcV3BalanceAfter = _cUsdcV3.balanceOf(address(_qwManager));
+        uint256 cUsdcV3BalanceAfter = _cUsdcV3.balanceOf(address(_qwCompound));
         uint256 usdcBalanceAfter = _usdc.balanceOf(address(_qwManager));
 
         assertGe(usdcBalanceAfter - usdcBalanceBefore, cUsdcV3BalanceBefore - withdrawFee);
