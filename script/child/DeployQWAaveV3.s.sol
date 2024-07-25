@@ -5,7 +5,7 @@ import {DeployBase} from '../helpers/DeployBase.sol';
 
 import {QWManager} from 'contracts/QWManager.sol';
 import {QWRegistry} from 'contracts/QWRegistry.sol';
-import {QWAaveV3} from 'contracts/child/QWAaveV3.sol';
+import {QWAaveV3} from 'contracts/components/QWAaveV3.sol';
 import {Script} from 'forge-std/Script.sol';
 
 /**
@@ -15,6 +15,8 @@ import {Script} from 'forge-std/Script.sol';
 contract DeployQWAaveV3 is Script, DeployBase {
   struct ConfigParams {
     address aavePool;
+    address investmentToken;
+    address assetToken;
   }
 
   QWAaveV3 public qwAaveV3;
@@ -36,10 +38,15 @@ contract DeployQWAaveV3 is Script, DeployBase {
     qwRegistry = QWRegistry(registryAddr);
 
     // Deploy QwChild
-    qwAaveV3 = new QWAaveV3(baseParams.qwManager, configParams.aavePool);
+    qwAaveV3 = new QWAaveV3(
+      baseParams.qwManager,
+      configParams.investmentToken,
+      configParams.assetToken,
+      configParams.aavePool
+    );
 
     // Register Child in registry
-    qwRegistry.registerChild(address(qwAaveV3));
+    qwRegistry.registerComponent(address(qwAaveV3));
 
     vm.stopBroadcast();
   }

@@ -5,7 +5,7 @@ import {DeployBase} from '../helpers/DeployBase.sol';
 
 import {QWManager} from 'contracts/QWManager.sol';
 import {QWRegistry} from 'contracts/QWRegistry.sol';
-import {QWUniswapV3Stable} from 'contracts/child/QWUniswapV3Stable.sol';
+import {QWUniswapV3Stable} from 'contracts/components/QWUniswapV3Stable.sol';
 import {Script} from 'forge-std/Script.sol';
 
 /**
@@ -14,6 +14,7 @@ import {Script} from 'forge-std/Script.sol';
  */
 contract DeployQWUniswapV3Stable is Script, DeployBase {
   struct ConfigParams {
+    address investmentToken;
     address nonFungiblePositionManager;
     address uniswapV3StablePool;
     address uniswapFactory;
@@ -38,17 +39,18 @@ contract DeployQWUniswapV3Stable is Script, DeployBase {
     address registryAddr = qwManager.REGISTRY();
     qwRegistry = QWRegistry(registryAddr);
 
-    // Deploy QwChild
+    // Deploy QwComponent
     qWUniswapV3Stable = new QWUniswapV3Stable(
       baseParams.qwManager,
+      configParams.investmentToken,
       configParams.nonFungiblePositionManager,
       configParams.uniswapFactory,
       configParams.weth9,
       configParams.uniswapV3StablePool
     );
 
-    // Register Child in registry
-    qwRegistry.registerChild(address(qWUniswapV3Stable));
+    // Register component in registry
+    qwRegistry.registerComponent(address(qWUniswapV3Stable));
 
     vm.stopBroadcast();
   }

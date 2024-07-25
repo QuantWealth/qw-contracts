@@ -8,17 +8,22 @@ import {MockQWManager} from 'test/smock/MockQWManager.sol';
 import {MockQWRegistry} from 'test/smock/MockQWRegistry.sol';
 
 import {SmockHelper} from 'test/smock/SmockHelper.sol';
-import {MockQWAaveV3} from 'test/smock/child/MockQWAaveV3.sol';
+import {MockQWAaveV3} from 'test/smock/components/MockQWAaveV3.sol';
 
 contract UnitQWRegistryTest is Test, SmockHelper {
   MockQWRegistry public mockQWRegistry;
   MockQWManager public mockQWManager;
   MockQWAaveV3 public mockQWAaveV3;
+  address public investmentToken;
+  address public assetToken;
 
   function setUp() public {
+    investmentToken = address(0x123);
+    assetToken = address(0x456);
+
     mockQWManager = MockQWManager(deployMock('QWManager', type(MockQWManager).creationCode, abi.encode()));
     mockQWAaveV3 = MockQWAaveV3(
-      deployMock('QWAaveV3', type(MockQWAaveV3).creationCode, abi.encode(address(mockQWManager), address(0x456)))
+      deployMock('QWAaveV3', type(MockQWAaveV3).creationCode, abi.encode(address(mockQWManager), investmentToken, assetToken, address(0x789)))
     );
 
     address validQWManager = address(mockQWManager);
@@ -26,7 +31,7 @@ contract UnitQWRegistryTest is Test, SmockHelper {
       MockQWRegistry(deployMock('QWRegistry', type(MockQWRegistry).creationCode, abi.encode(validQWManager)));
   }
 
-  function testRegisterChild() public {
+  function test_registerComponent() public {
     address validChildContract = address(mockQWAaveV3);
     // Record logs to capture emitted events
     vm.recordLogs();

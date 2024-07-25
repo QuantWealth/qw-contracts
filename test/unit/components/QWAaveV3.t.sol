@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: APACHE
 pragma solidity 0.8.23;
 
-import {IERC20, IPool, IQWChild, QWAaveV3} from 'contracts/child/QWAaveV3.sol';
+import {IERC20, IPool, IQWComponent, QWAaveV3} from 'contracts/components/QWAaveV3.sol';
 import {Test} from 'forge-std/Test.sol';
-import {MockQWAaveV3} from 'test/smock/child/MockQWAaveV3.sol';
+import {MockQWAaveV3} from 'test/smock/components/MockQWAaveV3.sol';
 
 contract UnitQWAaveV3Test is Test {
   MockQWAaveV3 public mockQWAaveV3;
@@ -16,28 +16,31 @@ contract UnitQWAaveV3Test is Test {
     mockQWAaveV3 = new MockQWAaveV3(qwManager, pool);
   }
 
-  function test_Create_Success() public {
-    bytes memory callData = '';
+  function test_open_success() public {
     address tokenAddress = address(0x789);
     uint256 amount = 100;
 
     // Mock a successful call to IPool.supply
-    mockQWAaveV3.mock_call_create(callData, tokenAddress, amount, true);
+    mockQWAaveV3.mock_call_open(amount, true);
 
-    // Call the create function
-    bool success = mockQWAaveV3.create(callData, tokenAddress, amount);
+    // Call the open function
+    (bool success, uint256 assetAmountReceived) = mockQWAaveV3.open(amount);
+
+    // TODO: check asset amount received, ensure QWManager received assets
 
     assertTrue(success, 'Create function should return true on success');
   }
 
-  function test_Close_Success() public {
-    bytes memory callData = abi.encode(address(0x123), uint256(100));
+  function test_close_success() public {
+    uint256 amount = 100;
 
     // Mock a successful call to IPool.withdraw
-    mockQWAaveV3.mock_call_close(callData, true);
+    mockQWAaveV3.mock_call_close(amount, true);
 
     // Call the close function
-    bool success = mockQWAaveV3.close(callData);
+    (bool success, uint256 tokenAmountReceived) = mockQWAaveV3.close(amount);
+
+    // TODO: Check token amount received, ensure QWManager received it
 
     assertTrue(success, 'Close function should return true on success');
   }
